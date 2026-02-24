@@ -21,7 +21,7 @@
             Upload Marks</button>
         <button onclick="showSection('view')" id="btnView"
             style="padding: 14px 28px; background: white; color: #5e72e4; border: 2px solid #5e72e4; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; flex: 1;">👁️
-            View Marks</button>
+            View Marks History</button>
     </div>
 
     <!-- Upload Marks Section -->
@@ -32,8 +32,7 @@
             <div
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;">
                 <div class="form-group">
-                    <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Class</label>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Class</label>
                     <select id="uploadClassNum" name="class_num" onchange="loadStudentsForUpload()"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                         <option value="">-- Class --</option>
@@ -42,7 +41,7 @@
                 </div>
                 <div class="form-group">
                     <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Section</label>
+                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Section</label>
                     <select id="uploadSection" name="section" onchange="loadStudentsForUpload()"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                         <option value="">-- Sec --</option>
@@ -54,43 +53,52 @@
                 </div>
                 <div class="form-group">
                     <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Subject</label>
+                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Subject</label>
                     <input type="text" id="uploadSubject" name="subject_name" list="subjectSuggestions"
-                        placeholder="e.g. Mathematics"
+                        placeholder="Mathematics"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                     <datalist id="subjectSuggestions"></datalist>
                 </div>
                 <div class="form-group">
-                    <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Exam
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Exam
                         Name</label>
-                    <input type="text" name="exam_name" placeholder="e.g. Midterm 1"
+                    <input type="text" name="exam_name" placeholder="Unit Test 1"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                 </div>
                 <div class="form-group">
-                    <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Total</label>
-                    <input type="number" name="total_mark" placeholder="100"
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Total
+                        Marks</label>
+                    <input type="number" id="totalMarkInput" name="total_mark" value="100"
+                        oninput="updateAllLiveDetails()"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                 </div>
                 <div class="form-group">
-                    <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Pass</label>
-                    <input type="number" name="pass_mark" placeholder="35"
+                    <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Pass
+                        Marks</label>
+                    <input type="number" id="passMarkInput" name="pass_mark" value="35" oninput="updateAllLiveDetails()"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                 </div>
             </div>
 
             <input type="hidden" id="uploadClassId" name="class_id">
 
-            <div id="studentMarksTable" style="display: none; margin-bottom: 25px;">
+            <div style="margin-bottom: 25px; text-align: center;">
+                <button type="button" onclick="loadStudentsForUpload()"
+                    style="padding: 10px 20px; background: #f4f5f7; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; font-weight: 700; color: #525f7f;">🔄
+                    Load Student List</button>
+            </div>
+
+            <div id="studentMarksTable" style="display: none; margin-bottom: 30px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #f8f9fe; border-bottom: 2px solid #e9ecef;">
                             <th style="padding: 15px; text-align: left; font-size: 13px; color: #8898aa;">Student Name
                             </th>
                             <th style="padding: 15px; text-align: left; font-size: 13px; color: #8898aa;">Reg No</th>
-                            <th style="padding: 15px; text-align: left; font-size: 13px; color: #8898aa;">Marks Scored
+                            <th style="padding: 15px; text-align: center; font-size: 13px; color: #8898aa;">Mark Scored
+                            </th>
+                            <th style="padding: 15px; text-align: center; font-size: 13px; color: #8898aa;">Status</th>
+                            <th style="padding: 15px; text-align: center; font-size: 13px; color: #8898aa;">Percentage
                             </th>
                         </tr>
                     </thead>
@@ -100,7 +108,7 @@
 
             <div style="text-align: right;">
                 <button type="submit"
-                    style="padding: 14px 40px; background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%); color: white; border: none; border-radius: 8px; font-weight: 700; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 15px rgba(45, 206, 137, 0.2);">💾
+                    style="padding: 16px 50px; background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%); color: white; border: none; border-radius: 8px; font-weight: 700; text-transform: uppercase; cursor: pointer;">💾
                     Save Marks</button>
             </div>
         </form>
@@ -113,8 +121,7 @@
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; align-items: end;">
             <div class="form-group">
-                <label
-                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Class</label>
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Class</label>
                 <select id="viewClassNum"
                     style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;">
                     <option value="">-- Class --</option>
@@ -122,8 +129,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label
-                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Section</label>
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Section</label>
                 <select id="viewSection"
                     style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;">
                     <option value="">-- Sec --</option>
@@ -134,14 +140,11 @@
                 </select>
             </div>
             <div class="form-group">
-                <label
-                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Exam</label>
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Exam</label>
                 <select id="viewExam"
                     style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;">
                     <option value="">-- Select Exam --</option>
-                    {% for exam in exams %}
-                    <option value="{{ exam.id }}">{{ exam.exam_name }}</option>
-                    {% endfor %}
+                    {% for exam in exams %}<option value="{{ exam.id }}">{{ exam.exam_name }}</option>{% endfor %}
                 </select>
             </div>
             <button onclick="fetchResults()"
@@ -169,30 +172,24 @@
     <!-- Student View -->
     <div
         style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); border-top: 5px solid #fb6340;">
-        <h2 style="margin-top: 0; margin-bottom: 30px; text-align: center; color: #32325d;">My Performance</h2>
+        <h2 style="margin-top: 0; margin-bottom: 30px; text-align: center; color: #32325d;">My Performance Report</h2>
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto 40px auto; align-items: end;">
             <div class="form-group">
-                <label
-                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Reg
-                    No</label>
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Reg No</label>
                 <input type="text" id="studentRegNo" placeholder="Enter Registration No"
                     style="width: 100%; padding: 12px; border: 2px solid #fb6340; border-radius: 8px;">
             </div>
             <div class="form-group">
-                <label
-                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Select
-                    Exam</label>
+                <label style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Exam</label>
                 <select id="studentExam"
                     style="width: 100%; padding: 12px; border: 2px solid #fb6340; border-radius: 8px;">
                     <option value="">-- Choose Exam --</option>
-                    {% for exam in exams %}
-                    <option value="{{ exam.id }}">{{ exam.exam_name }}</option>
-                    {% endfor %}
+                    {% for exam in exams %}<option value="{{ exam.id }}">{{ exam.exam_name }}</option>{% endfor %}
                 </select>
             </div>
             <button onclick="fetchStudentResults()"
-                style="padding: 14px 24px; background: #fb6340; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase;">📊
+                style="padding: 14px 24px; background: #fb6340; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">📊
                 View Report</button>
         </div>
 
@@ -201,8 +198,7 @@
                 style="background: #f8f9fe; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px dashed #ced4da;">
                 <h3 id="studentHeader" style="margin: 0; color: #32325d; font-size: 20px;"></h3>
             </div>
-            <table
-                style="width: 100%; border-collapse: collapse; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border-radius: 8px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden;">
                 <thead>
                     <tr style="background: #32325d; color: white;">
                         <th style="padding: 18px; text-align: left;">Subject</th>
@@ -226,202 +222,134 @@
     {% endfor %}
     };
 
-    console.log('Available Classes Map (Normalized):', classesMap);
-
     function showSection(section) {
         document.getElementById('sectionUpload').style.display = section === 'upload' ? 'block' : 'none';
         document.getElementById('sectionView').style.display = section === 'view' ? 'block' : 'none';
-
-        const btnUpload = document.getElementById('btnUpload');
-        const btnView = document.getElementById('btnView');
-
-        if (section === 'upload') {
-            btnUpload.style.background = 'linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)';
-            btnUpload.style.color = 'white';
-            btnView.style.background = 'white';
-            btnView.style.color = '#5e72e4';
-        } else {
-            btnView.style.background = 'linear-gradient(135deg, #11cdef 0%, #11cda3 100%)';
-            btnView.style.color = 'white';
-            btnUpload.style.background = 'white';
-            btnUpload.style.color = '#5e72e4';
-        }
+        const btns = { 'upload': 'btnUpload', 'view': 'btnView' };
+        Object.keys(btns).forEach(k => {
+            const el = document.getElementById(btns[k]);
+            if (k === section) { el.style.background = '#5e72e4'; el.style.color = 'white'; }
+            else { el.style.background = 'white'; el.style.color = '#5e72e4'; el.style.border = '2px solid #5e72e4'; }
+        });
     }
 
     async function loadStudentsForUpload() {
-        try {
-            const classNum = document.getElementById('uploadClassNum').value;
-            const section = document.getElementById('uploadSection').value;
+        const classNum = document.getElementById('uploadClassNum').value;
+        const section = document.getElementById('uploadSection').value;
+        if (!classNum || !section) return;
 
-            if (!classNum || !section) {
-                document.getElementById('studentMarksTable').style.display = 'none';
-                return;
-            }
+        const key = `${classNum.trim().toUpperCase()}-${section.trim().toUpperCase()}`;
+        const classId = classesMap[key];
+        if (!classId) return console.warn('Class not found in map for:', key);
 
-            const key = `${classNum.trim().toUpperCase()}-${section.trim().toUpperCase()}`;
-            const classId = classesMap[key];
-            console.log('Searching for Key:', key, '| Found classId:', classId);
+        document.getElementById('uploadClassId').value = classId;
 
-            if (!classId) {
-                console.warn('Class key not found in Normalized Map');
-                return;
-            }
+        // Async population of subjects
+        fetch(`/get_subjects/${classNum}-${section}`).then(r => r.json()).then(subjects => {
+            const dl = document.getElementById('subjectSuggestions');
+            dl.innerHTML = ''; subjects.forEach(s => dl.innerHTML += `<option value="${s.subject_name}">`);
+        });
 
-            document.getElementById('uploadClassId').value = classId;
+        // Load students
+        const studResp = await fetch(`/get_class_students/${classId}`);
+        const data = await studResp.json();
 
-            // Load subjects list
-            const subjResp = await fetch(`/get_subjects/${classNum}-${section}`);
-            const subjects = await subjResp.json();
-            const datalist = document.getElementById('subjectSuggestions');
-            datalist.innerHTML = '';
-            subjects.forEach(s => {
-                datalist.innerHTML += `<option value="${s.subject_name}">`;
+        if (data.success && data.students.length > 0) {
+            document.getElementById('studentMarksTable').style.display = 'block';
+            const tbody = document.getElementById('uploadTbody');
+            tbody.innerHTML = '';
+            data.students.forEach(s => {
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #f2f4f6;">
+                        <td style="padding: 12px; font-weight: 600;">${s.name}</td>
+                        <td style="padding: 12px; color: #8898aa;">${s.reg_no}</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <input type="hidden" name="reg_nos[]" value="${s.reg_no}">
+                            <input type="number" step="0.5" name="marks[]" oninput="updateLiveRow(this)" placeholder="Score" 
+                                style="padding: 8px; border: 1px solid #ced4da; border-radius: 4px; width: 80px; text-align: center;">
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span class="live-status" style="padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #eee;">-</span>
+                        </td>
+                        <td style="padding: 12px; text-align: center; font-weight: 700;" class="live-percent">-</td>
+                    </tr>
+                `;
             });
-
-            // Load students
-            const studResp = await fetch(`/get_class_students/${classId}`);
-            const studData = await studResp.json();
-
-            if (studData.success && studData.students.length > 0) {
-                document.getElementById('studentMarksTable').style.display = 'block';
-                const tbody = document.getElementById('uploadTbody');
-                tbody.innerHTML = '';
-                studData.students.forEach(s => {
-                    tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #f2f4f6;">
-                            <td style="padding: 12px; font-weight: 600; color: #32325d;">${s.name}</td>
-                            <td style="padding: 12px; color: #525f7f;">${s.reg_no}</td>
-                            <td style="padding: 12px;">
-                                <input type="hidden" name="reg_nos[]" value="${s.reg_no}">
-                                <input type="number" step="0.5" name="marks[]" placeholder="Enter Score" 
-                                    style="padding: 10px; border: 2px solid #e3e3e3; border-radius: 8px; width: 140px; outline: none;">
-                            </td>
-                        </tr>
-                    `;
-                });
-            } else {
-                document.getElementById('studentMarksTable').style.display = 'none';
-                if (studData.success) alert('No students found in this class.');
-            }
-        } catch (err) {
-            console.error('Error loading students:', err);
+        } else {
+            document.getElementById('studentMarksTable').style.display = 'none';
+            alert('No students found for this class/section.');
         }
     }
 
+    function updateLiveRow(input) {
+        const row = input.closest('tr');
+        const score = parseFloat(input.value) || 0;
+        const total = parseFloat(document.getElementById('totalMarkInput').value) || 100;
+        const pass = parseFloat(document.getElementById('passMarkInput').value) || 35;
+
+        const percent = ((score / total) * 100).toFixed(1);
+        const isPass = score >= pass;
+
+        row.querySelector('.live-percent').innerText = percent + '%';
+        const badge = row.querySelector('.live-status');
+        badge.innerText = isPass ? 'PASS' : 'FAIL';
+        badge.style.background = isPass ? '#e8f9ee' : '#fff1f4';
+        badge.style.color = isPass ? '#2dce89' : '#f5365c';
+    }
+
+    function updateAllLiveDetails() {
+        document.querySelectorAll('input[name="marks[]"]').forEach(input => updateLiveRow(input));
+    }
+
     async function fetchResults() {
-        try {
-            const classNum = document.getElementById('viewClassNum').value;
-            const section = document.getElementById('viewSection').value;
-            const examId = document.getElementById('viewExam').value;
+        const num = document.getElementById('viewClassNum').value;
+        const sec = document.getElementById('viewSection').value;
+        const exam = document.getElementById('viewExam').value;
+        if (!num || !sec || !exam) return alert('Select all filters');
 
-            if (!classNum || !section || !examId) return alert('Select class, section and exam');
+        const classId = classesMap[`${num.toUpperCase()}-${sec.toUpperCase()}`];
+        const resp = await fetch(`/get_exam_results?class_id=${classId}&exam_id=${exam}`);
+        const data = await resp.json();
 
-            const key = `${classNum.trim().toUpperCase()}-${section.trim().toUpperCase()}`;
-            const classId = classesMap[key];
-            if (!classId) return alert('Class not found');
-
-            const resp = await fetch(`/get_exam_results?class_id=${classId}&exam_id=${examId}`);
-            const data = await resp.json();
-
-            if (data.success) {
-                const table = document.getElementById('resultsTable');
-                const tbody = document.getElementById('resultsTbody');
-
-                if (data.results.length === 0) {
-                    alert('No results found for this selection');
-                    table.style.display = 'none';
-                    return;
-                }
-
-                table.style.display = 'block';
-                tbody.innerHTML = '';
-
-                data.results.forEach(r => {
-                    const percent = ((r.marks_scored / r.total_marks) * 100).toFixed(1);
-                    const isPass = r.marks_scored >= r.pass_mark;
-                    tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #f2f4f6;">
-                            <td style="padding: 15px;">
-                                <div style="font-weight: 700; color: #32325d;">${r.student_name}</div>
-                                <div style="font-size: 11px; color: #8898aa;">${r.reg_no}</div>
-                            </td>
-                            <td style="padding: 15px; color: #525f7f;">${r.subject_name}</td>
-                            <td style="padding: 15px; text-align: center; font-weight: 700;">${r.marks_scored} <small>/ ${r.total_marks}</small></td>
-                            <td style="padding: 15px; text-align: center;">
-                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'};">
-                                    ${isPass ? 'PASS' : 'FAIL'}
-                                </span>
-                            </td>
-                            <td style="padding: 15px; text-align: center; color: #525f7f;">${percent}%</td>
-                        </tr>
-                    `;
-                });
-            } else {
-                alert(data.message || 'Error fetching records');
-            }
-        } catch (err) {
-            console.error('Error fetching results:', err);
+        if (data.success) {
+            const table = document.getElementById('resultsTable');
+            const tbody = document.getElementById('resultsTbody');
+            table.style.display = 'block'; tbody.innerHTML = '';
+            data.results.forEach(r => {
+                const isPass = r.marks_scored >= r.pass_mark;
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #f2f4f6;">
+                        <td style="padding: 15px;"><b>${r.student_name}</b><br><small>${r.reg_no}</small></td>
+                        <td style="padding: 15px;">${r.subject_name}</td>
+                        <td style="padding: 15px; text-align: center;"><b>${r.marks_scored}</b> / ${r.total_marks}</td>
+                        <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
+                        <td style="padding: 15px; text-align: center;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
+                    </tr>`;
+            });
         }
     }
 
     async function fetchStudentResults() {
-        try {
-            const regNo = document.getElementById('studentRegNo').value;
-            const examId = document.getElementById('studentExam').value;
-
-            if (!regNo || !examId) return alert('Enter Reg No and select Exam');
-
-            const resp = await fetch(`/get_exam_results?exam_id=${examId}&reg_no=${regNo}`);
-            const data = await resp.json();
-
-            if (data.success && data.results.length > 0) {
-                const area = document.getElementById('studentResultsArea');
-                const tbody = document.getElementById('studentResultsTbody');
-                const header = document.getElementById('studentHeader');
-
-                header.innerHTML = `Performance Report: <span style="color: #fb6340;">${data.results[0].student_name}</span>`;
-                area.style.display = 'block';
-                tbody.innerHTML = '';
-
-                let totalScored = 0;
-                let maxPossible = 0;
-
-                data.results.forEach(r => {
-                    const percent = ((r.marks_scored / r.total_marks) * 100).toFixed(1);
-                    const isPass = r.marks_scored >= r.pass_mark;
-                    totalScored += r.marks_scored;
-                    maxPossible += r.total_marks;
-
-                    tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #f2f4f6;">
-                            <td style="padding: 18px; font-weight: 700; color: #32325d;">${r.subject_name}</td>
-                            <td style="padding: 18px; text-align: center; font-weight: 800; color: #5e72e4;">${r.marks_scored}</td>
-                            <td style="padding: 18px; text-align: center; color: #8898aa;">${r.total_marks}</td>
-                            <td style="padding: 18px; text-align: center;">
-                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'};">
-                                    ${isPass ? 'PASS' : 'FAIL'}
-                                </span>
-                            </td>
-                            <td style="padding: 18px; text-align: center; font-weight: 700; color: #32325d;">${percent}%</td>
-                        </tr>
-                    `;
-                });
-
-                const totalPercent = ((totalScored / maxPossible) * 100).toFixed(1);
+        const reg = document.getElementById('studentRegNo').value;
+        const exam = document.getElementById('studentExam').value;
+        if (!reg || !exam) return alert('Enter Reg No and Exam');
+        const resp = await fetch(`/get_exam_results?exam_id=${exam}&reg_no=${reg}`);
+        const data = await resp.json();
+        if (data.success && data.results.length > 0) {
+            document.getElementById('studentResultsArea').style.display = 'block';
+            document.getElementById('studentHeader').innerText = `Report: ${data.results[0].student_name}`;
+            const tbody = document.getElementById('studentResultsTbody'); tbody.innerHTML = '';
+            data.results.forEach(r => {
+                const isPass = r.marks_scored >= r.pass_mark;
                 tbody.innerHTML += `
-                    <tr style="background: #f8f9fe; border-top: 2px solid #32325d;">
-                        <td style="padding: 18px; font-weight: 800; text-transform: uppercase;">Total Aggregate</td>
-                        <td style="padding: 18px; text-align: center; font-weight: 900; color: #5e72e4; font-size: 20px;">${totalScored}</td>
-                        <td style="padding: 18px; text-align: center;">${maxPossible}</td>
-                        <td style="padding: 18px; text-align: center;">-</td>
-                        <td style="padding: 18px; text-align: center; font-weight: 900; color: #32325d; font-size: 20px;">${totalPercent}%</td>
-                    </tr>
-                `;
-            } else {
-                alert(data.message || 'No records found for this student/exam combo');
-            }
-        } catch (err) {
-            console.error('Error in fetchStudentResults:', err);
-        }
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 15px; font-weight: 700;">${r.subject_name}</td>
+                        <td style="padding: 15px; text-align: center; color: #5e72e4; font-weight: 800;">${r.marks_scored}</td>
+                        <td style="padding: 15px; text-align: center; color: #8898aa;">${r.total_marks}</td>
+                        <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
+                        <td style="padding: 15px; text-align: center; font-weight: 700;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
+                    </tr>`;
+            });
+        } else alert('No records found.');
     }
 </script>
