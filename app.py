@@ -185,22 +185,29 @@ def init_db():
             conn.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
                        ('admin1', hashlib.sha256('admin123'.encode()).hexdigest(), 'admin'))
         
+        # Insert more comprehensive sample data if empty
         class_count = conn.fetchone('SELECT COUNT(*) as count FROM classes')['count']
         if class_count == 0:
-            conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 10', 'A'))
-            conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 10', 'B'))
-            conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 11', 'A'))
+            for i in range(1, 13):
+                conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", (f'Class {i}', 'A'))
+                conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", (f'Class {i}', 'B'))
+            conn.commit()
         
         student_count = conn.fetchone('SELECT COUNT(*) as count FROM students')['count']
         if student_count == 0:
-            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('001', 'Alice', 1))
-            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('002', 'Bob', 1))
-            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('003', 'Charlie', 2))
-            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('004', 'Diana', 3))
+            # Add at least 2 students to every class 'A' for testing
+            classes = conn.execute("SELECT id, class_name FROM classes WHERE section = 'A'").fetchall()
+            for cls in classes:
+                name1 = f"Student A ({cls['class_name']})"
+                name2 = f"Student B ({cls['class_name']})"
+                conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", 
+                           (f"REG-{cls['id']}-1", name1, cls['id']))
+                conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", 
+                           (f"REG-{cls['id']}-2", name2, cls['id']))
+            conn.commit()
         
-        conn.commit()
         conn.close()
-        print('Database initialized successfully', flush=True)
+        print('Database initialized with full sample data', flush=True)
     except Exception as e:
         print(f'Database initialization error: {str(e)}', flush=True)
 
