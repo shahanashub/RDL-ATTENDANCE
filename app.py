@@ -1,23 +1,54 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, abort, jsonify
-import sqlite3
 from datetime import date
 import hashlib
 from functools import wraps
 import csv
 import io
-
 import os
+import sqlite3
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    psycopg2 = None
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'scientia_secret_2026')  # Use env var in prod
 
+class PostgresWrapper:
+    def __init__(self, conn):
+        self.conn = conn
+    def cursor(self):
+        return self.conn.cursor(cursor_factory=RealDictCursor)
+    def execute(self, sql, params=None):
+        cur = self.cursor()
+        if isinstance(sql, str):
+            sql = sql.replace('?', '%s')
+        cur.execute(sql, params or ())
+        return cur
+    def commit(self):
+        self.conn.commit()
+    def close(self):
+        self.conn.close()
+    def fetchone(self, sql, params=None):
+        cur = self.execute(sql, params)
+        res = cur.fetchone()
+        cur.close()
+        return res
+
 def get_db():
-    """Get database connection with proper configuration"""
-    db_path = os.environ.get('DATABASE_URL', 'scientia.db')
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    conn.execute('PRAGMA foreign_keys = ON')  # Enable foreign key constraints
-    return conn
+    db_url = os.environ.get('DATABASE_URL', 'scientia.db')
+    if db_url.startswith('postgres://') or db_url.startswith('postgresql://'):
+        # Fix for Render: postgres:// URLs must be postgresql://
+        if db_url.startswith('postgres://'):
+            db_url = db_url.replace('postgres://', 'postgresql://', 1)
+        conn = psycopg2.connect(db_url)
+        return PostgresWrapper(conn)
+    else:
+        conn = sqlite3.connect(db_url)
+        conn.row_factory = sqlite3.Row
+        conn.execute('PRAGMA foreign_keys = ON')
+        return conn
 
 def login_required(f):
     @wraps(f)
