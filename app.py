@@ -9,8 +9,9 @@ import sqlite3
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
-except ImportError:
+except ImportError as e:
     psycopg2 = None
+    print(f"Warning: psycopg2 import failed: {e}")
 
 # For cross-database compatibility
 IntegrityErrors = (sqlite3.IntegrityError,)
