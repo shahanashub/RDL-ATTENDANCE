@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Scientia</title>
+    <style>
+    .login-wrapper {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #667eea 50%, #764ba2 75%, #f093fb 100%);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+    }
+
+    .scientia-header {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: linear-gradient(135deg, #1e4a96 0%, #2d5fb0 100%);
+        padding: 12px 30px;
+        border-radius: 50px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 400px;
+        z-index: 100;
+    }
+
+    .scientia-logo {
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 700;
+        color: #1e4a96;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .scientia-text {
+        color: white;
+    }
+
+    .scientia-text h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .scientia-text p {
+        margin: 0;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        opacity: 0.9;
+    }
+
+    .login-card {
+        background: linear-gradient(135deg, #1e4a96 0%, #2d5fb0 100%);
+        padding: 50px 40px;
+        border-radius: 16px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 450px;
+        margin-top: 80px;
+    }
+
+    .login-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .role-selector {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0;
+        margin-bottom: 35px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0;
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        height: 70px;
+    }
+
+    .role-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        flex: 1;
+        height: 100%;
+        padding: 0 15px;
+        border-right: 2px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .role-option:last-child {
+        border-right: none;
+    }
+
+    .role-option:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .role-option label {
+        color: white;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        cursor: pointer;
+        margin: 0;
+        order: -1;
+    }
+
+    .role-option-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+    }
+
+    .role-toggle {
+        position: relative;
+        width: 50px;
+        height: 26px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 13px;
+        cursor: pointer;
+        border: 2px solid white;
+        transition: all 0.3s ease;
+        appearance: none;
+        -webkit-appearance: none;
+        padding: 0;
+    }
+
+    .role-toggle::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: left 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .role-toggle:checked {
+        background: #4caf50;
+        border-color: #4caf50;
+    }
+
+    .role-toggle:checked::after {
+        left: 27px;
+    }
+
+    .role-option.active::after {
+        content: '✓';
+        position: absolute;
+        top: -15px;
+        right: 10px;
+        font-size: 20px;
+        color: #4caf50;
+        font-weight: 700;
+    }
+
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .login-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .login-form-group label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .login-form-input {
+        padding: 14px 16px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        font-size: 13px;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        font-family: inherit;
+        transition: all 0.3s ease;
+    }
+
+    .login-form-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .login-form-input:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .login-form-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.3);
+        border-color: white;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 18px;
+        background: none;
+        border: none;
+        padding: 0;
+        transition: color 0.3s ease;
+    }
+
+    .toggle-password:hover {
+        color: white;
+    }
+
+    .button-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 25px;
+    }
+
+    .btn-cancel {
+        padding: 14px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid white;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-login {
+        padding: 14px 20px;
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-login:hover {
+        background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(76, 175, 80, 0.4);
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .login-footer p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 13px;
+        margin: 0 0 10px 0;
+    }
+
+    .login-footer a {
+        color: #81d4fa;
+        text-decoration: none;
+        font-weight: 700;
+        transition: color 0.3s ease;
+    }
+
+    .login-footer a:hover {
+        color: white;
+        text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+        .login-card {
+            padding: 35px 25px;
+            margin-top: 100px;
+        }
+        
+        .scientia-header {
+            top: 15px;
+            padding: 10px 20px;
+        }
+
+        .button-group {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="scientia-header">
+        <div class="scientia-logo">🎓</div>
+        <div class="scientia-text">
+            <h3>SCIENTIA</h3>
+            <p>THE COMPLETE EDUCATION POINT</p>
+        </div>
+    </div>
+
+    <div class="login-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div class="login-title" style="margin: 0; flex: 1; text-align: center;">Login</div>
+            <a href="{{ url_for('index') }}" style="
+                padding: 10px 20px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 12px;
+                transition: all 0.3s ease;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+            " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'; this.style.borderColor='rgba(255, 255, 255, 0.5)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'">
+                🏠 HOME
+            </a>
+        </div>
+
+        <div class="role-selector">
+            <div class="role-option">
+                <label>👤 Student</label>
+                <input type="checkbox" class="role-toggle" id="role-student" checked>
+            </div>
+            <div class="role-option">
+                <label>👨‍🏫 Teacher</label>
+                <input type="checkbox" class="role-toggle" id="role-teacher">
+            </div>
+            <div class="role-option">
+                <label>⚙️ Admin</label>
+                <input type="checkbox" class="role-toggle" id="role-admin">
+            </div>
+        </div>
+
+        <form method="POST" class="login-form" onsubmit="return validateLoginForm();">
+            <div class="login-form-group">
+                <label>👤 Username</label>
+                <input type="text" name="username" class="login-form-input" placeholder="Enter your username" required>
+            </div>
+
+            <div class="login-form-group">
+                <label>🔐 Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="password" class="login-form-input" placeholder="Enter your password" required>
+                    <button type="button" class="toggle-password" id="toggle-pwd" onclick="togglePassword()">👁️</button>
+                </div>
+            </div>
+
+            <div class="login-form-group class-form-group" id="class-field-group" style="display: block;">
+                <label>📚 Class <span style="color: #ff6b6b;">*</span></label>
+                <input type="text" name="class" id="class-input" class="login-form-input" placeholder="Select or enter class">
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn-cancel" onclick="goHome()">Cancel</button>
+                <button type="submit" class="btn-login">Login</button>
+            </div>
+
+            <input type="hidden" name="role" id="selected-role" value="student">
+        </form>
+
+        <div class="login-footer">
+            <p>Don't have an account?</p>
+            <a href="{{ url_for('register') }}">Create Account Here</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function goHome() {
+    window.location.href = '{{ url_for("index") }}';
+}
+
+function togglePassword() {
+    const pwd = document.getElementById('password');
+    const btn = document.getElementById('toggle-pwd');
+    if (pwd.type === 'password') {
+        pwd.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        pwd.type = 'password';
+        btn.textContent = '👁️';
+    }
+}
+
+function validateLoginForm() {
+    const role = document.getElementById('selected-role').value;
+    const classInput = document.getElementById('class-input');
+    
+    // Only validate class field if student role is selected
+    if (role === 'student' && !classInput.value.trim()) {
+        alert('Please enter your class');
+        classInput.focus();
+        return false;
+    }
+    
+    return true;
+}
+
+document.querySelectorAll('.role-toggle').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+        document.querySelectorAll('.role-toggle').forEach(t => t.checked = false);
+        document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('active'));
+        this.checked = true;
+        this.closest('.role-option').classList.add('active');
+
+        const classFieldGroup = document.getElementById('class-field-group');
+        const classInput = document.getElementById('class-input');
+
+        if (this.id === 'role-student') {
+            document.getElementById('selected-role').value = 'student';
+            classFieldGroup.style.display = 'block';
+        } else if (this.id === 'role-teacher') {
+            document.getElementById('selected-role').value = 'teacher';
+            classFieldGroup.style.display = 'none';
+            classInput.value = '';
+        } else if (this.id === 'role-admin') {
+            document.getElementById('selected-role').value = 'admin';
+            classFieldGroup.style.display = 'none';
+            classInput.value = '';
+        }
+    });
+});
+
+// Initialize active state on page load
+window.addEventListener('DOMContentLoaded', function() {
+    const checkedToggle = document.querySelector('.role-toggle:checked');
+    if (checkedToggle) {
+        checkedToggle.closest('.role-option').classList.add('active');
+        // Trigger change to set class field visibility
+        checkedToggle.dispatchEvent(new Event('change'));
+    }
+});
+</script>
+</body>
+</html>

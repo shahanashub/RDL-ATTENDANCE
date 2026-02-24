@@ -1,0 +1,581 @@
+
+<style>
+    .history-container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .history-header {
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .history-title {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+        color: #32325d;
+    }
+
+    .history-back-btn {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .history-back-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(94, 114, 228, 0.3);
+    }
+
+    .class-selector-section {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        border-left: 5px solid #5e72e4;
+    }
+
+    .selector-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #32325d;
+        margin: 0 0 20px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .selector-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #32325d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group select {
+        padding: 12px 16px;
+        border: 2px solid #e3e3e3;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+        background: white;
+        color: #32325d;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .form-group select:focus {
+        outline: none;
+        border-color: #5e72e4;
+        box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.1);
+    }
+
+    .btn-view-history {
+        padding: 12px 32px;
+        background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(94, 114, 228, 0.3);
+        font-size: 13px;
+    }
+
+    .btn-view-history:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(94, 114, 228, 0.4);
+    }
+
+    .btn-view-history:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .records-container {
+        display: grid;
+        gap: 25px;
+    }
+
+    .record-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #5e72e4;
+    }
+
+    .record-header {
+        background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+        padding: 18px 20px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .record-date {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .record-class {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .record-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .record-table thead tr {
+        background: #f7f7f7;
+        border-bottom: 2px solid #e3e3e3;
+    }
+
+    .record-table thead th {
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 700;
+        color: #32325d;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .record-table tbody tr {
+        border-bottom: 1px solid #e8ecf1;
+        transition: all 0.3s ease;
+    }
+
+    .record-table tbody tr:hover {
+        background: #f7f9ff;
+    }
+
+    .record-table tbody tr.present {
+        background: #e8f5e9;
+    }
+
+    .record-table tbody tr.absent {
+        background: #ffebee;
+    }
+
+    .record-table td {
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 13px;
+    }
+
+    .record-table td:nth-child(1) {
+        font-weight: 600;
+        color: #32325d;
+    }
+
+    .record-table td:nth-child(3) {
+        text-align: center;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .status-badge.present {
+        background: #2dce89;
+    }
+
+    .status-badge.absent {
+        background: #fb6340;
+    }
+
+    .record-footer {
+        padding: 15px 20px;
+        background: #f8f9ff;
+        border-top: 2px solid #e8ecf1;
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .footer-stat {
+        text-align: center;
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .footer-stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .footer-stat-label {
+        font-size: 12px;
+        color: #636b7d;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+
+    .present-stat {
+        color: #2dce89;
+    }
+
+    .absent-stat {
+        color: #fb6340;
+    }
+
+    .rate-stat {
+        color: #5e72e4;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+        border-radius: 8px;
+        display: none;
+    }
+
+    .empty-state.show {
+        display: block;
+    }
+
+    .empty-state-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+
+    .empty-state-title {
+        color: #5e72e4;
+        margin-bottom: 10px;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .empty-state-text {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .no-selection {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+        border-radius: 8px;
+    }
+
+    .no-selection-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+
+    .no-selection-title {
+        color: #5e72e4;
+        margin-bottom: 10px;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .no-selection-text {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .history-container {
+            padding: 20px;
+        }
+
+        .history-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .selector-form {
+            grid-template-columns: 1fr;
+        }
+
+        .record-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .record-table {
+            font-size: 12px;
+        }
+
+        .record-table td {
+            padding: 8px 10px;
+        }
+    }
+</style>
+
+<div class="history-container">
+    <div class="history-header">
+        <h1 class="history-title">📜 Attendance History</h1>
+        <a href="{{ url_for('dashboard') }}" class="history-back-btn">← Back to Dashboard</a>
+    </div>
+
+    <div class="class-selector-section">
+        <h2 class="selector-title">Select Class & Section</h2>
+        <form class="selector-form" id="classForm">
+            <div class="form-group">
+                <label for="class_num">📚 Class</label>
+                <select id="class_num" required onchange="loadSubjectsList()">
+                    <option value="">-- Select Class --</option>
+                    <option value="1">Class 1</option>
+                    <option value="2">Class 2</option>
+                    <option value="3">Class 3</option>
+                    <option value="4">Class 4</option>
+                    <option value="5">Class 5</option>
+                    <option value="6">Class 6</option>
+                    <option value="7">Class 7</option>
+                    <option value="8">Class 8</option>
+                    <option value="9">Class 9</option>
+                    <option value="10">Class 10</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="section">📋 Section</label>
+                <select id="section" required onchange="loadSubjectsList()">
+                    <option value="">-- Select Section --</option>
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
+                    <option value="C">Section C</option>
+                    <option value="D">Section D</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="subject_id">📖 Subject (Optional)</label>
+                <select id="subject_id">
+                    <option value="">-- Select Subject (All if empty) --</option>
+                </select>
+            </div>
+
+            <button type="button" class="btn-view-history" onclick="loadAttendanceHistory()" id="viewBtn">
+                📋 View History
+            </button>
+        </form>
+    </div>
+
+    <div id="contentArea">
+        <div class="no-selection">
+            <div class="no-selection-icon">🎯</div>
+            <h2 class="no-selection-title">Select Class & Section</h2>
+            <p class="no-selection-text">Please select a class and section from above to view attendance history</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Build a map of available classes
+const classesMap = {
+    {% for cls in classes %}
+    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': {{ cls.id }},
+    {% endfor %}
+};
+
+async function loadAttendanceHistory() {
+    const classNum = document.getElementById('class_num').value;
+    const section = document.getElementById('section').value;
+    const subjectId = document.getElementById('subject_id').value;
+    
+    if (!classNum || !section) {
+        alert('Please select both Class and Section');
+        return;
+    }
+
+    // Find the class_id from the map
+    const key = classNum + '-' + section;
+    const classId = classesMap[key];
+    
+    if (!classId) {
+        alert('This Class - Section combination does not exist');
+        return;
+    }
+
+    const viewBtn = document.getElementById('viewBtn');
+    viewBtn.disabled = true;
+    viewBtn.textContent = '⏳ Loading...';
+
+    try {
+        let url = `/get_attendance_history/${classId}`;
+        if (subjectId) {
+            url += `?subject_id=${subjectId}`;
+        }
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+            displayAttendanceHistory(data.records);
+        } else {
+            alert('Error loading attendance history');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error loading attendance history');
+    } finally {
+        viewBtn.disabled = false;
+        viewBtn.textContent = '📋 View History';
+    }
+}
+
+async function loadSubjectsList() {
+    const classNum = document.getElementById('class_num').value;
+    const section = document.getElementById('section').value;
+    const subjectSelect = document.getElementById('subject_id');
+    
+    if (!classNum || !section) {
+        subjectSelect.innerHTML = '<option value="">-- Select Subject (All if empty) --</option>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/get_subjects/${classNum}-${section}`);
+        const data = await response.json();
+        
+        let html = '<option value="">-- Select Subject (All if empty) --</option>';
+        data.forEach(subject => {
+            html += `<option value="${subject.id}">${subject.subject_name}</option>`;
+        });
+        subjectSelect.innerHTML = html;
+    } catch (error) {
+        console.log('Could not load subjects:', error);
+        subjectSelect.innerHTML = '<option value="">-- Select Subject (All if empty) --</option>';
+    }
+}
+
+function displayAttendanceHistory(records) {
+    const contentArea = document.getElementById('contentArea');
+    
+    if (records.length === 0) {
+        contentArea.innerHTML = `
+            <div class="empty-state show">
+                <div class="empty-state-icon">📋</div>
+                <h2 class="empty-state-title">No Attendance Records Found</h2>
+                <p class="empty-state-text">There are no attendance records available for this class yet</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '<div class="records-container">';
+    records.forEach(record => {
+        const presentCount = record.students.filter(s => s.present).length;
+        const absentCount = record.students.filter(s => !s.present).length;
+        const total = record.students.length;
+        const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
+
+        html += `
+            <div class="record-card">
+                <div class="record-header">
+                    <h2 class="record-date">📅 ${record.date}</h2>
+                    <span class="record-class">${record.class_name} - ${record.section}</span>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="record-table">
+                        <thead>
+                            <tr>
+                                <th>📝 Roll No.</th>
+                                <th>👤 Name</th>
+                                <th>✓ Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${record.students.map(student => `
+                                <tr class="${student.present ? 'present' : 'absent'}">
+                                    <td>${student.reg_no}</td>
+                                    <td>${student.name}</td>
+                                    <td>
+                                        <span class="status-badge ${student.present ? 'present' : 'absent'}">
+                                            ${student.present ? '✓ Present' : '✗ Absent'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="record-footer">
+                    <div class="footer-stat">
+                        <div class="footer-stat-number present-stat">${presentCount}</div>
+                        <div class="footer-stat-label">Present</div>
+                    </div>
+                    
+                    <div class="footer-stat">
+                        <div class="footer-stat-number absent-stat">${absentCount}</div>
+                        <div class="footer-stat-label">Absent</div>
+                    </div>
+                    
+                    <div class="footer-stat">
+                        <div class="footer-stat-number rate-stat">${rate}%</div>
+                        <div class="footer-stat-label">Attendance Rate</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    contentArea.innerHTML = html;
+}
+
+// Allow Enter key to load history
+document.getElementById('class_select').addEventListener('keyup', function(e) {
+    if (e.key === 'Enter') {
+        loadAttendanceHistory();
+    }
+});
+</script>
+
+
+</style>

@@ -1,0 +1,21 @@
+# Environments
+.conda/
+.venv/
+env/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+scientia.db
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/

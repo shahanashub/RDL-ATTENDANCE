@@ -1,0 +1,64 @@
+
+<div style="margin-bottom: 40px;">
+    <h1>Welcome to Scientia Dashboard</h1>
+    <p style="font-size: 16px; color: #636b7d; margin-bottom: 30px;">Your attendance management system for modern education</p>
+    
+    
+    <div style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
+        <a href="{{ url_for('attendance') }}" style="
+            display: inline-block;
+            padding: 18px 48px;
+            background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(94, 114, 228, 0.4);
+        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(94, 114, 228, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(94, 114, 228, 0.4)'">
+            📊 Mark Attendance
+        </a>
+        
+        <a href="{{ url_for('history') }}" style="
+            display: inline-block;
+            padding: 18px 48px;
+            background: linear-gradient(135deg, #11cdef 0%, #0da5c0 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(17, 205, 239, 0.4);
+        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(17, 205, 239, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(17, 205, 239, 0.4)'">
+            📜 Attendance History
+        </a>
+    </div>
+   
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #5e72e4; text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+        <div style="font-size: 48px; margin-bottom: 15px;">📚</div>
+        <h3 style="color: #32325d; margin: 0 0 10px 0; font-size: 18px;">Education</h3>
+        <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Track and manage student attendance effectively</p>
+    </div>
+    
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #2dce89; text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+        <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
+        <h3 style="color: #32325d; margin: 0 0 10px 0; font-size: 18px;">Reliable</h3>
+        <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Secure and dependable attendance recording</p>
+    </div>
+    
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #11cdef; text-align: center; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+        <div style="font-size: 48px; margin-bottom: 15px;">📈</div>
+        <h3 style="color: #32325d; margin: 0 0 10px 0; font-size: 18px;">Analytics</h3>
+        <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">View detailed attendance reports and history</p>
+    </div>
+</div>
+

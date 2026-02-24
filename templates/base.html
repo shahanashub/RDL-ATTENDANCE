@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Scientia - Attendance Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        
+                    <div class="flash"></div>
+                
+    
+            <div class="nav">
+                <span>👤<span></span></span>
+                <div>
+                    <a href="{{ url_for('dashboard') }}">🏠 Dashboard</a>
+                    
+                        <a href="{{ url_for('attendance') }}">📊 Attendance</a>
+        
+                    <a href="{{ url_for('logout') }}">🚪 Logout</a>
+                </div>
+            </div>
+            <div class="main-container">
+            
+            </div>
+
+    </div>
+    
+    
+        <script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
+    
+</body>
+</html>
