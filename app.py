@@ -425,6 +425,19 @@ def get_subjects(class_num, section):
     
     return jsonify([dict(s) for s in subjects])
 
+@app.route('/get_class_students/<int:class_id>')
+@login_required
+def get_class_students(class_id):
+    """Get all students in a specific class"""
+    if not is_teacher_or_admin():
+        abort(403)
+    
+    conn = get_db()
+    students = conn.execute('SELECT reg_no, name FROM students WHERE class_id = ? ORDER BY name', (class_id,)).fetchall()
+    conn.close()
+    
+    return jsonify({'success': True, 'students': [dict(s) for s in students]})
+
 @app.route('/add_subjects', methods=['POST'])
 @login_required
 def add_subjects():
@@ -789,6 +802,7 @@ def exam_marks():
     conn = get_db()
     exams = conn.execute('SELECT * FROM exams ORDER BY exam_name').fetchall()
     classes = conn.execute('SELECT * FROM classes ORDER BY class_name').fetchall()
+    print(f"DEBUG: Found {len(classes)} classes")
     
     if request.method == 'POST' and session.get('role') in ['admin', 'teacher']:
         # Uploading marks logic handled in separate route for simplicity or here
@@ -860,12 +874,15 @@ def get_exam_results():
     exam_id = request.args.get('exam_id')
     reg_no = request.args.get('reg_no') # if student is viewing their own
     
+    if not exam_id:
+        return jsonify({'success': False, 'message': 'Exam ID is required'})
+
     conn = get_db()
     
     # Students view merged marks for all subjects in an exam
     if session.get('role') == 'student' or reg_no:
-        # If student, find their reg_no
-        if session.get('role') == 'student':
+        # If student and no reg_no provided, try to find it from user_id
+        if not reg_no and session.get('role') == 'student':
             student = conn.execute('SELECT reg_no FROM students WHERE user_id = ?', (session['user_id'],)).fetchone()
             reg_no = student['reg_no'] if student else None
             
@@ -884,6 +901,10 @@ def get_exam_results():
         results = conn.execute(query, (exam_id, reg_no)).fetchall()
     else:
         # Admins/Teachers view all marks for a class and exam
+        if not class_id:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Class ID is required for non-students'})
+            
         query = '''
             SELECT std.name as student_name, std.reg_no, s.subject_name, m.marks_scored, m.total_marks, m.pass_mark
             FROM marks m
@@ -942,15 +963,22 @@ def get_fees():
     conn = get_db()
     
     if session.get('role') == 'student' or reg_no:
-        if session.get('role') == 'student':
+        # If student and no reg_no provided, try from user_id
+        if not reg_no and session.get('role') == 'student':
             student = conn.execute('SELECT reg_no FROM students WHERE user_id = ?', (session['user_id'],)).fetchone()
             reg_no = student['reg_no'] if student else None
             
-        results = conn.execute('SELECT * FROM fees WHERE reg_no = ? ORDER BY payment_date DESC', (reg_no,)).fetchall()
+        if reg_no:
+            results = conn.execute('SELECT * FROM fees WHERE reg_no = ? ORDER BY payment_date DESC', (reg_no,)).fetchall()
+        else:
+            results = []
     else:
         # Admin or Teacher
-        query = 'SELECT * FROM fees WHERE class_id = ?'
-        params = [class_id]
+        query = 'SELECT * FROM fees WHERE 1=1'
+        params = []
+        if class_id:
+            query += ' AND class_id = ?'
+            params.append(class_id)
         if month:
             query += ' AND month = ?'
             params.append(month)

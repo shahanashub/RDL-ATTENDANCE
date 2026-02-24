@@ -83,7 +83,7 @@
                     <select id="uploadClassNum" onchange="updateUploadClassId()"
                         style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
                         <option value="">-- Class --</option>
-                        {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                        {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
@@ -119,7 +119,7 @@
                 <select id="filterClassNum"
                     style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
                     <option value="">-- Class --</option>
-                    {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                    {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
                 </select>
             </div>
             <div class="form-group">
@@ -170,7 +170,7 @@
                 <label>Class</label>
                 <select id="teacherClassNum"
                     style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                    {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
                 </select>
             </div>
             <div class="form-group">
@@ -208,17 +208,6 @@
 
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; max-width: 800px; margin: 0 auto 25px auto;">
-            <select id="studentClassNum" style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
-                <option value="">-- Class --</option>
-                {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
-            </select>
-            <select id="studentSection" style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
-                <option value="">-- Sec --</option>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-            </select>
             <input type="text" id="verifyName" placeholder="Full Student Name"
                 style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
             <input type="text" id="verifyReg" placeholder="Registration Number"
@@ -241,15 +230,20 @@
 <script>
     const classesMap = {
         {% for cls in classes %}
-    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': { { cls.id } },
+    '{{ cls.class_name.upper().replace("CLASS", "").strip() }}-{{ cls.section.upper().strip() }}': { { cls.id } },
     {% endfor %}
     };
+
+    console.log('Fees Classes Map (Normalized):', classesMap);
 
     function updateUploadClassId() {
         const num = document.getElementById('uploadClassNum').value;
         const sec = document.getElementById('uploadSection').value;
         if (num && sec) {
-            document.getElementById('uploadClassId').value = classesMap[`${num}-${sec}`] || '';
+            const key = `${num.trim().toUpperCase()}-${sec.trim().toUpperCase()}`;
+            const id = classesMap[key];
+            console.log('Fees Searching for Key:', key, '| Found ID:', id);
+            document.getElementById('uploadClassId').value = id || '';
         }
     }
 
@@ -274,91 +268,107 @@
     }
 
     async function fetchFees(role) {
-        let classId, month, regNo, name;
-        if (role === 'admin') {
-            const num = document.getElementById('filterClassNum').value;
-            const sec = document.getElementById('filterSection').value;
-            if (num && sec) classId = classesMap[`${num}-${sec}`];
-            month = document.getElementById('filterMonth').value;
-        } else if (role === 'teacher') {
-            const num = document.getElementById('teacherClassNum').value;
-            const sec = document.getElementById('teacherSection').value;
-            if (num && sec) classId = classesMap[`${num}-${sec}`];
-            month = document.getElementById('teacherMonth').value;
-        } else {
-            const num = document.getElementById('studentClassNum').value;
-            const sec = document.getElementById('studentSection').value;
-            regNo = document.getElementById('verifyReg').value;
-            name = document.getElementById('verifyName').value;
-            if (!regNo || !name || !num || !sec) return alert('Enter all details');
-        }
-
-        let url = `/get_fees?`;
-        if (classId) url += `class_id=${classId}&`;
-        if (month) url += `month=${month}&`;
-        if (regNo) url += `reg_no=${regNo}`;
-
-        const resp = await fetch(url);
-        const data = await resp.json();
-
-        if (data.success) {
-            if (role === 'student') {
-                const area = document.getElementById('studentFeesArea');
-                const grid = document.getElementById('receiptGrid');
-
-                // Secondary check for name match on student view
-                const filtered = data.results.filter(r => r.student_name.toLowerCase() === name.toLowerCase());
-
-                if (filtered.length === 0) return alert('No matching records found for this Name and ID');
-
-                area.style.display = 'block';
-                grid.innerHTML = '';
-                filtered.forEach(r => {
-                    grid.innerHTML += `
-                        <div style="background: #f8f9fe; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                                <span style="font-weight: 800; color: #32325d;">Receipt: ${r.month}</span>
-                                <span style="color: #2dce89; font-weight: 700;">PAID</span>
-                            </div>
-                            <div style="font-size: 13px; color: #8898aa; line-height: 1.8;">
-                                <div>📅 Date: ${r.payment_date}</div>
-                                <div>💳 Mode: ${r.payment_mode}</div>
-                                <div style="margin-top: 10px; font-weight: 700; color: #fb6340;">💸 Remaining Balance: ₹${r.balance_amount}</div>
-                            </div>
-                            <button onclick="window.print()" style="margin-top: 20px; width: 100%; padding: 10px; background: white; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; font-weight: 700;">📥 Download</button>
-                        </div>
-                    `;
-                });
+        try {
+            let classId, month, regNo, name;
+            if (role === 'admin') {
+                const num = document.getElementById('filterClassNum').value;
+                const sec = document.getElementById('filterSection').value;
+                if (num && sec) {
+                    const key = `${num.trim().toUpperCase()}-${sec.trim().toUpperCase()}`;
+                    classId = classesMap[key];
+                }
+                month = document.getElementById('filterMonth').value;
+            } else if (role === 'teacher') {
+                const num = document.getElementById('teacherClassNum').value;
+                const sec = document.getElementById('teacherSection').value;
+                if (num && sec) {
+                    const key = `${num.trim().toUpperCase()}-${sec.trim().toUpperCase()}`;
+                    classId = classesMap[key];
+                }
+                month = document.getElementById('teacherMonth').value;
             } else {
-                const table = document.getElementById('feesTable');
-                const tbody = document.getElementById('feesTbody');
-                table.style.display = 'block';
-                tbody.innerHTML = (role === 'admin') ? '' : `
-                    <tr style="background: #f8f9fe; border-bottom: 2px solid #e9ecef; text-align: left;">
-                        <th style="padding: 15px;">Student</th>
-                        <th style="padding: 15px;">Month</th>
-                        <th style="padding: 15px;">Balance</th>
-                        <th style="padding: 15px;">Action</th>
-                    </tr>
-                `;
+                regNo = document.getElementById('verifyReg').value;
+                name = document.getElementById('verifyName').value;
+                if (!regNo || !name) return alert('Enter Name and ID');
+            }
 
-                data.results.forEach(r => {
-                    const row = `
-                        <tr style="border-bottom: 1px solid #f2f4f6;">
-                            <td style="padding: 15px;">
-                                <div style="font-weight: 700; color: #32325d;">${r.student_name}</div>
-                                <div style="font-size: 11px; color: #8898aa;">${r.reg_no}</div>
-                            </td>
-                            <td style="padding: 15px;">${r.payment_date}</td>
-                            <td style="padding: 15px; font-weight: 700;">${r.month}</td>
-                            <td style="padding: 15px;">${r.payment_mode}</td>
-                            <td style="padding: 15px; color: #fb6340; font-weight: 700;">₹${r.balance_amount}</td>
-                            <td style="padding: 15px;"><button style="padding: 6px 12px; border: 1px solid #ced4da; border-radius: 4px; cursor: pointer;">View Receipt</button></td>
+            let url = `/get_fees?`;
+            if (classId) url += `class_id=${classId}&`;
+            if (month) url += `month=${month}&`;
+            if (regNo) url += `reg_no=${regNo}`;
+
+            console.log('Fetching fees from:', url);
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            if (data.success) {
+                if (role === 'student') {
+                    const area = document.getElementById('studentFeesArea');
+                    const grid = document.getElementById('receiptGrid');
+                    const filtered = data.results.filter(r => r.student_name.toLowerCase().trim() === name.toLowerCase().trim());
+
+                    if (filtered.length === 0) return alert('No matching records found for this Name and ID');
+
+                    area.style.display = 'block';
+                    grid.innerHTML = '';
+                    filtered.forEach(r => {
+                        grid.innerHTML += `
+                            <div style="background: #f8f9fe; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                    <span style="font-weight: 800; color: #32325d;">Receipt: ${r.month}</span>
+                                    <span style="color: #2dce89; font-weight: 700;">PAID</span>
+                                </div>
+                                <div style="font-size: 13px; color: #8898aa; line-height: 1.8;">
+                                    <div>📅 Date: ${r.payment_date}</div>
+                                    <div>💳 Mode: ${r.payment_mode}</div>
+                                    <div style="margin-top: 10px; font-weight: 700; color: #fb6340;">💸 Remaining Balance: ₹${r.balance_amount}</div>
+                                </div>
+                                <button onclick="window.print()" style="margin-top: 20px; width: 100%; padding: 10px; background: white; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; font-weight: 700;">📥 Download</button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    const table = document.getElementById('feesTable');
+                    const tbody = document.getElementById('feesTbody');
+
+                    if (data.results.length === 0) {
+                        alert('No fee records found');
+                        table.style.display = 'none';
+                        return;
+                    }
+
+                    table.style.display = 'block';
+                    tbody.innerHTML = (role === 'admin') ? '' : `
+                        <tr style="background: #f8f9fe; border-bottom: 2px solid #e9ecef; text-align: left;">
+                            <th style="padding: 15px;">Student</th>
+                            <th style="padding: 15px;">Month</th>
+                            <th style="padding: 15px;">Balance</th>
+                            <th style="padding: 15px;">Action</th>
                         </tr>
                     `;
-                    tbody.innerHTML += row;
-                });
+
+                    data.results.forEach(r => {
+                        const row = `
+                            <tr style="border-bottom: 1px solid #f2f4f6;">
+                                <td style="padding: 15px;">
+                                    <div style="font-weight: 700; color: #32325d;">${r.student_name}</div>
+                                    <div style="font-size: 11px; color: #8898aa;">${r.reg_no}</div>
+                                </td>
+                                <td style="padding: 15px;">${r.payment_date}</td>
+                                <td style="padding: 15px; font-weight: 700;">${r.month}</td>
+                                <td style="padding: 15px;">${r.payment_mode}</td>
+                                <td style="padding: 15px; color: #fb6340; font-weight: 700;">₹${r.balance_amount}</td>
+                                <td style="padding: 15px;"><button onclick="window.print()" style="padding: 6px 12px; border: 1px solid #ced4da; border-radius: 4px; cursor: pointer;">View Receipt</button></td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                }
+            } else {
+                alert(data.message || 'Failed to fetch fee records');
             }
+        } catch (err) {
+            console.error('Error in fetchFees:', err);
         }
     }
 </script>
