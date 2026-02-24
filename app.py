@@ -163,9 +163,9 @@ def init_db():
         
         conn.commit()
         conn.close()
-        print('Database initialized successfully')
+        print('Database initialized successfully', flush=True)
     except Exception as e:
-        print(f'Database initialization error: {str(e)}')
+        print(f'Database initialization error: {str(e)}', flush=True)
 
 def is_teacher_or_admin():
     return session.get('role') in ['teacher', 'admin']
