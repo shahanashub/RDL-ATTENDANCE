@@ -1,0 +1,76 @@
+<div class="education-container" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <div>
+            <h1 style="margin: 0; font-size: 36px; color: #32325d; font-weight: 800; letter-spacing: -0.5px;">🎓
+                Education Hub</h1>
+            <p style="margin: 5px 0 0 0; color: #636b7d; font-size: 16px;">Comprehensive management for academic
+                excellence</p>
+        </div>
+        <a href="{{ url_for('dashboard') }}" style="
+            padding: 12px 24px;
+            background: #f4f5f7;
+            color: #525f7f;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        " onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f4f5f7'">🏠 Dashboard</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+        <!-- Exam Mark Card -->
+        <a href="{{ url_for('exam_marks') }}" style="text-decoration: none; display: block;">
+            <div style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #5e72e4; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; text-align: center;"
+                onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 40px rgba(94, 114, 228, 0.15)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.05)'">
+                <div style="font-size: 56px; margin-bottom: 20px;">📝</div>
+                <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700;">Exam Mark</h3>
+                <p style="color: #636b7d; margin: 0; font-size: 15px; line-height: 1.6;">Upload and track academic
+                    performance across all subjects</p>
+            </div>
+        </a>
+
+        <!-- Fees Card -->
+        <a href="{{ url_for('fees') }}" style="text-decoration: none; display: block;">
+            <div style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #fb6340; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; text-align: center;"
+                onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 40px rgba(251, 99, 64, 0.15)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.05)'">
+                <div style="font-size: 56px; margin-bottom: 20px;">💰</div>
+                <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700;">Fees</h3>
+                <p style="color: #636b7d; margin: 0; font-size: 15px; line-height: 1.6;">Manage fee receipts and payment
+                    histories securely</p>
+            </div>
+        </a>
+
+        <!-- Placeholder Cards -->
+        <div
+            style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #2dce89; opacity: 0.9; text-align: center;">
+            <div style="font-size: 56px; margin-bottom: 20px;">📖</div>
+            <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700;">Study Materials</h3>
+            <span
+                style="display: inline-block; padding: 4px 12px; background: #e8f9ee; color: #2dce89; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">Coming
+                Soon</span>
+        </div>
+
+        <div
+            style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #11cdef; opacity: 0.9; text-align: center;">
+            <div style="font-size: 56px; margin-bottom: 20px;">❓</div>
+            <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700;">Quiz</h3>
+            <span
+                style="display: inline-block; padding: 4px 12px; background: #e0faff; color: #11cdef; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">Coming
+                Soon</span>
+        </div>
+
+        <div
+            style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #f3a4b5; opacity: 0.9; text-align: center;">
+            <div style="font-size: 56px; margin-bottom: 20px;">📎</div>
+            <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700;">Assignment</h3>
+            <span
+                style="display: inline-block; padding: 4px 12px; background: #fff1f4; color: #f3a4b5; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">Coming
+                Soon</span>
+        </div>
+    </div>
+</div>

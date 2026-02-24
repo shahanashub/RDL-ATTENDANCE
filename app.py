@@ -140,6 +140,42 @@ def init_db():
             FOREIGN KEY (class_id) REFERENCES classes (id),
             FOREIGN KEY (subject_id) REFERENCES subjects (id)
         )''')
+
+        # Create exams table
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS exams (
+            id {pk_type},
+            exam_name TEXT NOT NULL,
+            UNIQUE(exam_name)
+        )''')
+
+        # Create marks table
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS marks (
+            id {pk_type},
+            class_id INTEGER NOT NULL,
+            subject_id INTEGER NOT NULL,
+            exam_id INTEGER NOT NULL,
+            reg_no TEXT NOT NULL,
+            marks_scored REAL NOT NULL,
+            total_marks REAL NOT NULL,
+            pass_mark REAL NOT NULL,
+            UNIQUE(class_id, subject_id, exam_id, reg_no),
+            FOREIGN KEY (class_id) REFERENCES classes (id),
+            FOREIGN KEY (subject_id) REFERENCES subjects (id),
+            FOREIGN KEY (exam_id) REFERENCES exams (id)
+        )''')
+
+        # Create fees table
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS fees (
+            id {pk_type},
+            student_name TEXT NOT NULL,
+            reg_no TEXT NOT NULL,
+            month TEXT NOT NULL,
+            payment_date DATE NOT NULL,
+            payment_mode TEXT NOT NULL,
+            balance_amount REAL NOT NULL,
+            class_id INTEGER NOT NULL,
+            FOREIGN KEY (class_id) REFERENCES classes (id)
+        )''')
         
         # Insert sample data if tables are empty
         user_count = conn.fetchone('SELECT COUNT(*) as count FROM users')['count']
@@ -741,6 +777,176 @@ def attendance_history(class_id):
     conn.close()
     return render_template('history.html', records=records, class_id=class_id, 
                           selected_subject=subject_id, subjects=subjects)
+
+@app.route('/education')
+@login_required
+def education():
+    return render_template('education.html')
+
+@app.route('/exam_marks', methods=['GET', 'POST'])
+@login_required
+def exam_marks():
+    conn = get_db()
+    exams = conn.execute('SELECT * FROM exams ORDER BY exam_name').fetchall()
+    classes = conn.execute('SELECT * FROM classes ORDER BY class_name').fetchall()
+    
+    if request.method == 'POST' and session.get('role') in ['admin', 'teacher']:
+        # Uploading marks logic handled in separate route for simplicity or here
+        pass
+
+    conn.close()
+    return render_template('exam_marks.html', exams=exams, classes=classes)
+
+@app.route('/upload_marks', methods=['POST'])
+@login_required
+def upload_marks():
+    if session.get('role') not in ['admin', 'teacher']:
+        abort(403)
+    
+    try:
+        class_id = request.form.get('class_id')
+        subject_id = request.form.get('subject_id')
+        exam_name = request.form.get('exam_name')
+        total_mark = float(request.form.get('total_mark'))
+        pass_mark = float(request.form.get('pass_mark'))
+        
+        conn = get_db()
+        
+        # Get or create exam
+        exam = conn.execute('SELECT id FROM exams WHERE exam_name = ?', (exam_name,)).fetchone()
+        if not exam:
+            conn.execute('INSERT INTO exams (exam_name) VALUES (?)', (exam_name,))
+            conn.commit()
+            exam = conn.execute('SELECT id FROM exams WHERE exam_name = ?', (exam_name,)).fetchone()
+        
+        exam_id = exam['id']
+        
+        # Process marks for each student
+        student_marks = request.form.getlist('marks[]')
+        student_regs = request.form.getlist('reg_nos[]')
+        
+        for reg_no, marks in zip(student_regs, student_marks):
+            if marks.strip():
+                # Delete existing if any
+                conn.execute('DELETE FROM marks WHERE class_id = ? AND subject_id = ? AND exam_id = ? AND reg_no = ?',
+                           (class_id, subject_id, exam_id, reg_no))
+                conn.execute('''INSERT INTO marks (class_id, subject_id, exam_id, reg_no, marks_scored, total_marks, pass_mark)
+                             VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                           (class_id, subject_id, exam_id, reg_no, float(marks), total_mark, pass_mark))
+        
+        conn.commit()
+        conn.close()
+        flash('Exam marks uploaded successfully!', 'success')
+        return redirect(url_for('exam_marks'))
+    except Exception as e:
+        flash(f'Error uploading marks: {str(e)}', 'danger')
+        return redirect(url_for('exam_marks'))
+
+@app.route('/get_exam_results')
+@login_required
+def get_exam_results():
+    class_id = request.args.get('class_id')
+    exam_id = request.args.get('exam_id')
+    reg_no = request.args.get('reg_no') # if student is viewing their own
+    
+    conn = get_db()
+    
+    # Students view merged marks for all subjects in an exam
+    if session.get('role') == 'student' or reg_no:
+        # If student, find their reg_no
+        if session.get('role') == 'student':
+            student = conn.execute('SELECT reg_no FROM students WHERE user_id = ?', (session['user_id'],)).fetchone()
+            reg_no = student['reg_no'] if student else None
+            
+        if not reg_no:
+            conn.close()
+            return jsonify({'success': False, 'message': 'Registration number not found'})
+            
+        query = '''
+            SELECT s.subject_name, m.marks_scored, m.total_marks, m.pass_mark, 
+            std.name as student_name, std.reg_no
+            FROM marks m
+            JOIN subjects s ON m.subject_id = s.id
+            JOIN students std ON m.reg_no = std.reg_no
+            WHERE m.exam_id = ? AND m.reg_no = ?
+        '''
+        results = conn.execute(query, (exam_id, reg_no)).fetchall()
+    else:
+        # Admins/Teachers view all marks for a class and exam
+        query = '''
+            SELECT std.name as student_name, std.reg_no, s.subject_name, m.marks_scored, m.total_marks, m.pass_mark
+            FROM marks m
+            JOIN subjects s ON m.subject_id = s.id
+            JOIN students std ON m.reg_no = std.reg_no
+            WHERE m.exam_id = ? AND m.class_id = ?
+            ORDER BY std.reg_no, s.subject_name
+        '''
+        results = conn.execute(query, (exam_id, class_id)).fetchall()
+        
+    conn.close()
+    return jsonify({'success': True, 'results': [dict(r) for r in results]})
+
+@app.route('/fees', methods=['GET', 'POST'])
+@login_required
+def fees():
+    conn = get_db()
+    classes = conn.execute('SELECT * FROM classes ORDER BY class_name').fetchall()
+    conn.close()
+    return render_template('fees.html', classes=classes)
+
+@app.route('/upload_fee_receipt', methods=['POST'])
+@login_required
+def upload_fee_receipt():
+    if session.get('role') != 'admin':
+        abort(403)
+        
+    try:
+        student_name = request.form.get('student_name')
+        reg_no = request.form.get('reg_no')
+        month = request.form.get('month')
+        date = request.form.get('date')
+        mode = request.form.get('mode')
+        balance = float(request.form.get('balance'))
+        class_id = request.form.get('class_id')
+        
+        conn = get_db()
+        conn.execute('''INSERT INTO fees (student_name, reg_no, month, payment_date, payment_mode, balance_amount, class_id)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                     (student_name, reg_no, month, date, mode, balance, class_id))
+        conn.commit()
+        conn.close()
+        flash('Fee receipt saved successfully!', 'success')
+        return redirect(url_for('fees'))
+    except Exception as e:
+        flash(f'Error saving fee receipt: {str(e)}', 'danger')
+        return redirect(url_for('fees'))
+
+@app.route('/get_fees')
+@login_required
+def get_fees():
+    class_id = request.args.get('class_id')
+    month = request.args.get('month')
+    reg_no = request.args.get('reg_no')
+    
+    conn = get_db()
+    
+    if session.get('role') == 'student' or reg_no:
+        if session.get('role') == 'student':
+            student = conn.execute('SELECT reg_no FROM students WHERE user_id = ?', (session['user_id'],)).fetchone()
+            reg_no = student['reg_no'] if student else None
+            
+        results = conn.execute('SELECT * FROM fees WHERE reg_no = ? ORDER BY payment_date DESC', (reg_no,)).fetchall()
+    else:
+        # Admin or Teacher
+        query = 'SELECT * FROM fees WHERE class_id = ?'
+        params = [class_id]
+        if month:
+            query += ' AND month = ?'
+            params.append(month)
+        results = conn.execute(query, tuple(params)).fetchall()
+        
+    conn.close()
+    return jsonify({'success': True, 'results': [dict(r) for r in results]})
 
 # Initialize database on startup
 init_db()

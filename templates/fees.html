@@ -1,0 +1,306 @@
+<div class="fees-container" style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px;">
+        <div>
+            <h1 style="margin: 0; font-size: 32px; color: #32325d; font-weight: 800;">💰 Fees Management</h1>
+            <p style="margin: 5px 0 0 0; color: #636b7d;">Financial records and receipt tracking</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ url_for('education') }}"
+                style="padding: 10px 20px; background: #f4f5f7; color: #525f7f; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 13px;">🎓
+                Education Hub</a>
+            <a href="{{ url_for('dashboard') }}"
+                style="padding: 10px 20px; background: #f4f5f7; color: #525f7f; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 13px;">🏠
+                Dashboard</a>
+        </div>
+    </div>
+
+    {% if session.role == 'admin' %}
+    <!-- Admin Controls -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
+        <button onclick="toggleSection('upload')" id="btnUpload"
+            style="padding: 16px; background: linear-gradient(135deg, #fb6340 0%, #fbb140 100%); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">📤
+            Upload Receipt</button>
+        <button onclick="toggleSection('view')" id="btnView"
+            style="padding: 16px; background: white; color: #fb6340; border: 2px solid #fb6340; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">👁️
+            View Status / History</button>
+    </div>
+
+    <!-- Admin Upload Section -->
+    <div id="sectionUpload"
+        style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-left: 6px solid #fb6340;">
+        <h2 style="margin-top: 0; margin-bottom: 30px; font-size: 22px; color: #32325d;">Generate New Fee Receipt</h2>
+        <form action="{{ url_for('upload_fee_receipt') }}" method="POST">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 30px;">
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Student
+                        Name</label>
+                    <input type="text" name="student_name" placeholder="John Doe"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Reg
+                        Number</label>
+                    <input type="text" name="reg_no" placeholder="REG-2024-001"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Month</label>
+                    <input type="month" name="month"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Date
+                        of Payment</label>
+                    <input type="date" name="date"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Payment
+                        Mode</label>
+                    <select name="mode"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                        <option value="Cash">Cash</option>
+                        <option value="Online">Online / UPI</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Balance
+                        Amount</label>
+                    <input type="number" name="balance" placeholder="0.00"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                </div>
+                <div class="form-group" style="grid-column: span 1;">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Class
+                        & Section</label>
+                    <select name="class_id"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                        <option value="">-- Select Class --</option>
+                        {% for cls in classes %}
+                        <option value="{{ cls.id }}">{{ cls.class_name }} - {{ cls.section }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <button type="submit"
+                    style="padding: 16px 50px; background: #fb6340; color: white; border: none; border-radius: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 99, 64, 0.3);">✅
+                    Save Receipt</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Admin View Section -->
+    <div id="sectionView"
+        style="display: none; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <h2 style="margin-top: 0; margin-bottom: 30px;">Filter Payment Status</h2>
+        <div
+            style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 20px; align-items: end; margin-bottom: 40px;">
+            <div class="form-group">
+                <label>Class</label>
+                <select id="filterClass"
+                    style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <option value="">-- All Classes --</option>
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}">{{ cls.class_name }} - {{ cls.section }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Month</label>
+                <input type="month" id="filterMonth"
+                    style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+            </div>
+            <button onclick="fetchFees('admin')"
+                style="padding: 14px 28px; background: #32325d; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔍
+                View Details</button>
+        </div>
+
+        <div id="feesTable" style="display: none;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e9ecef; text-align: left;">
+                        <th style="padding: 15px; color: #8898aa;">Student / Reg No</th>
+                        <th style="padding: 15px; color: #8898aa;">Date</th>
+                        <th style="padding: 15px; color: #8898aa;">Month</th>
+                        <th style="padding: 15px; color: #8898aa;">Mode</th>
+                        <th style="padding: 15px; color: #8898aa;">Balance</th>
+                        <th style="padding: 15px; color: #8898aa;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="feesTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    {% elif session.role == 'teacher' %}
+    <!-- Teacher View -->
+    <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <h2 style="margin-top: 0; margin-bottom: 30px; color: #32325d;">Student Fee Records</h2>
+        <div
+            style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: end; margin-bottom: 40px;">
+            <div class="form-group">
+                <label>Class</label>
+                <select id="teacherClass"
+                    style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}">{{ cls.class_name }} - {{ cls.section }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Month</label>
+                <input type="month" id="teacherMonth"
+                    style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+            </div>
+            <button onclick="fetchFees('teacher')"
+                style="padding: 14px 28px; background: #5e72e4; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔍
+                Show Records</button>
+        </div>
+        <div id="feesTable" style="display: none;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tbody id="feesTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Student View -->
+    <div
+        style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;">
+        <h2 style="margin-top: 0; margin-bottom: 10px; color: #32325d;">Access My Receipts</h2>
+        <p style="color: #636b7d; margin-bottom: 35px;">Verify your identity to view fee details</p>
+
+        <div
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 600px; margin: 0 auto 25px auto;">
+            <input type="text" id="verifyName" placeholder="Full Student Name"
+                style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
+            <input type="text" id="verifyReg" placeholder="Registration Number"
+                style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
+        </div>
+        <button onclick="fetchFees('student')"
+            style="padding: 16px 40px; background: #2dce89; color: white; border: none; border-radius: 12px; font-weight: 800; text-transform: uppercase;">👁️
+            View My History</button>
+
+        <div id="studentFeesArea" style="display: none; margin-top: 50px; text-align: left;">
+            <h3 style="border-bottom: 2px solid #2dce89; padding-bottom: 15px; margin-bottom: 25px;">Receipt History
+            </h3>
+            <div id="receiptGrid"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;"></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function toggleSection(sec) {
+        document.getElementById('sectionUpload').style.display = sec === 'upload' ? 'block' : 'none';
+        document.getElementById('sectionView').style.display = sec === 'view' ? 'block' : 'none';
+
+        const btnUpload = document.getElementById('btnUpload');
+        const btnView = document.getElementById('btnView');
+
+        if (sec === 'upload') {
+            btnUpload.style.background = 'linear-gradient(135deg, #fb6340 0%, #fbb140 100%)';
+            btnUpload.style.color = 'white';
+            btnView.style.background = 'white';
+            btnView.style.color = '#fb6340';
+        } else {
+            btnView.style.background = 'linear-gradient(135deg, #fb6340 0%, #fbb140 100%)';
+            btnView.style.color = 'white';
+            btnUpload.style.background = 'white';
+            btnUpload.style.color = '#fb6340';
+        }
+    }
+
+    async function fetchFees(role) {
+        let classId, month, regNo, name;
+        if (role === 'admin') {
+            classId = document.getElementById('filterClass').value;
+            month = document.getElementById('filterMonth').value;
+        } else if (role === 'teacher') {
+            classId = document.getElementById('teacherClass').value;
+            month = document.getElementById('teacherMonth').value;
+        } else {
+            regNo = document.getElementById('verifyReg').value;
+            name = document.getElementById('verifyName').value;
+            if (!regNo || !name) return alert('Enter name and ID');
+        }
+
+        let url = `/get_fees?`;
+        if (classId) url += `class_id=${classId}&`;
+        if (month) url += `month=${month}&`;
+        if (regNo) url += `reg_no=${regNo}`;
+
+        const resp = await fetch(url);
+        const data = await resp.json();
+
+        if (data.success) {
+            if (role === 'student') {
+                const area = document.getElementById('studentFeesArea');
+                const grid = document.getElementById('receiptGrid');
+
+                // Secondary check for name match on student view
+                const filtered = data.results.filter(r => r.student_name.toLowerCase() === name.toLowerCase());
+
+                if (filtered.length === 0) return alert('No matching records found for this Name and ID');
+
+                area.style.display = 'block';
+                grid.innerHTML = '';
+                filtered.forEach(r => {
+                    grid.innerHTML += `
+                        <div style="background: #f8f9fe; border: 1px solid #e9ecef; border-radius: 12px; padding: 25px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                <span style="font-weight: 800; color: #32325d;">Receipt: ${r.month}</span>
+                                <span style="color: #2dce89; font-weight: 700;">PAID</span>
+                            </div>
+                            <div style="font-size: 13px; color: #8898aa; line-height: 1.8;">
+                                <div>📅 Date: ${r.payment_date}</div>
+                                <div>💳 Mode: ${r.payment_mode}</div>
+                                <div style="margin-top: 10px; font-weight: 700; color: #fb6340;">💸 Remaining Balance: ₹${r.balance_amount}</div>
+                            </div>
+                            <button onclick="window.print()" style="margin-top: 20px; width: 100%; padding: 10px; background: white; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; font-weight: 700;">📥 Download</button>
+                        </div>
+                    `;
+                });
+            } else {
+                const table = document.getElementById('feesTable');
+                const tbody = document.getElementById('feesTbody');
+                table.style.display = 'block';
+                tbody.innerHTML = (role === 'admin') ? '' : `
+                    <tr style="background: #f8f9fe; border-bottom: 2px solid #e9ecef; text-align: left;">
+                        <th style="padding: 15px;">Student</th>
+                        <th style="padding: 15px;">Month</th>
+                        <th style="padding: 15px;">Balance</th>
+                        <th style="padding: 15px;">Action</th>
+                    </tr>
+                `;
+
+                data.results.forEach(r => {
+                    const row = `
+                        <tr style="border-bottom: 1px solid #f2f4f6;">
+                            <td style="padding: 15px;">
+                                <div style="font-weight: 700; color: #32325d;">${r.student_name}</div>
+                                <div style="font-size: 11px; color: #8898aa;">${r.reg_no}</div>
+                            </td>
+                            <td style="padding: 15px;">${r.payment_date}</td>
+                            <td style="padding: 15px; font-weight: 700;">${r.month}</td>
+                            <td style="padding: 15px;">${r.payment_mode}</td>
+                            <td style="padding: 15px; color: #fb6340; font-weight: 700;">₹${r.balance_amount}</td>
+                            <td style="padding: 15px;"><button style="padding: 6px 12px; border: 1px solid #ced4da; border-radius: 4px; cursor: pointer;">View Receipt</button></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+        }
+    }
+</script>
