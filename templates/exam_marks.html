@@ -218,19 +218,24 @@
 <script>
     const classesMap = {
         {% for cls in classes %}
-    '{{ cls.class_name.upper().replace("CLASS", "").strip() }}-{{ cls.section.upper().strip() }}': { { cls.id } },
+    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": { { cls.id } },
     {% endfor %}
     };
 
     function showSection(section) {
         document.getElementById('sectionUpload').style.display = section === 'upload' ? 'block' : 'none';
         document.getElementById('sectionView').style.display = section === 'view' ? 'block' : 'none';
-        const btns = { 'upload': 'btnUpload', 'view': 'btnView' };
-        Object.keys(btns).forEach(k => {
-            const el = document.getElementById(btns[k]);
-            if (k === section) { el.style.background = '#5e72e4'; el.style.color = 'white'; }
-            else { el.style.background = 'white'; el.style.color = '#5e72e4'; el.style.border = '2px solid #5e72e4'; }
-        });
+
+        const btnUpload = document.getElementById('btnUpload');
+        const btnView = document.getElementById('btnView');
+
+        if (section === 'upload') {
+            btnUpload.style.background = '#5e72e4'; btnUpload.style.color = 'white';
+            btnView.style.background = 'white'; btnView.style.color = '#5e72e4'; btnView.style.border = '2px solid #5e72e4';
+        } else {
+            btnView.style.background = '#5e72e4'; btnView.style.color = 'white';
+            btnUpload.style.background = 'white'; btnUpload.style.color = '#5e72e4'; btnUpload.style.border = '2px solid #5e72e4';
+        }
     }
 
     async function loadStudentsForUpload() {
@@ -238,7 +243,7 @@
         const section = document.getElementById('uploadSection').value;
         if (!classNum || !section) return;
 
-        const key = `${classNum.trim().toUpperCase()}-${section.trim().toUpperCase()}`;
+        const key = classNum.trim().toUpperCase() + '-' + section.trim().toUpperCase();
         const classId = classesMap[key];
         if (!classId) return console.warn('Class not found in map for:', key);
 
@@ -307,7 +312,8 @@
         const exam = document.getElementById('viewExam').value;
         if (!num || !sec || !exam) return alert('Select all filters');
 
-        const classId = classesMap[`${num.toUpperCase()}-${sec.toUpperCase()}`];
+        const key = num.trim().toUpperCase() + '-' + sec.trim().toUpperCase();
+        const classId = classesMap[key];
         const resp = await fetch(`/get_exam_results?class_id=${classId}&exam_id=${exam}`);
         const data = await resp.json();
 

@@ -230,7 +230,7 @@
 <script>
     const classesMap = {
         {% for cls in classes %}
-    '{{ cls.class_name.upper().replace("CLASS", "").strip() }}-{{ cls.section.upper().strip() }}': { { cls.id } },
+    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": { { cls.id } },
     {% endfor %}
     };
 
@@ -240,7 +240,7 @@
         const num = document.getElementById('uploadClassNum').value;
         const sec = document.getElementById('uploadSection').value;
         if (num && sec) {
-            const key = `${num.trim().toUpperCase()}-${sec.trim().toUpperCase()}`;
+            const key = num.trim().toUpperCase() + '-' + sec.trim().toUpperCase();
             const id = classesMap[key];
             console.log('Fees Searching for Key:', key, '| Found ID:', id);
             document.getElementById('uploadClassId').value = id || '';
@@ -259,11 +259,13 @@
             btnUpload.style.color = 'white';
             btnView.style.background = 'white';
             btnView.style.color = '#fb6340';
+            btnView.style.border = '2px solid #fb6340';
         } else {
             btnView.style.background = 'linear-gradient(135deg, #fb6340 0%, #fbb140 100%)';
             btnView.style.color = 'white';
             btnUpload.style.background = 'white';
             btnUpload.style.color = '#fb6340';
+            btnUpload.style.border = '2px solid #fb6340';
         }
     }
 
@@ -274,7 +276,7 @@
                 const num = document.getElementById('filterClassNum').value;
                 const sec = document.getElementById('filterSection').value;
                 if (num && sec) {
-                    const key = `${num.trim().toUpperCase()}-${sec.trim().toUpperCase()}`;
+                    const key = num.trim().toUpperCase() + '-' + sec.trim().toUpperCase();
                     classId = classesMap[key];
                 }
                 month = document.getElementById('filterMonth').value;
@@ -282,7 +284,7 @@
                 const num = document.getElementById('teacherClassNum').value;
                 const sec = document.getElementById('teacherSection').value;
                 if (num && sec) {
-                    const key = `${num.trim().toUpperCase()}-${sec.trim().toUpperCase()}`;
+                    const key = num.trim().toUpperCase() + '-' + sec.trim().toUpperCase();
                     classId = classesMap[key];
                 }
                 month = document.getElementById('teacherMonth').value;
