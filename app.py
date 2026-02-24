@@ -65,24 +65,24 @@ def init_db():
         cur = conn.cursor()
         
         # Create users table
-        cur.execute('''CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conn.execute('''CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT NOT NULL
         )''')
         
         # Create classes table
-        cur.execute('''CREATE TABLE IF NOT EXISTS classes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conn.execute('''CREATE TABLE IF NOT EXISTS classes (
+            id SERIAL PRIMARY KEY,
             class_name TEXT NOT NULL,
             section TEXT NOT NULL,
             UNIQUE(class_name, section)
         )''')
         
         # Create students table
-        cur.execute('''CREATE TABLE IF NOT EXISTS students (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conn.execute('''CREATE TABLE IF NOT EXISTS students (
+            id SERIAL PRIMARY KEY,
             reg_no TEXT UNIQUE NOT NULL,
             name TEXT NOT NULL,
             class_id INTEGER,
@@ -92,8 +92,8 @@ def init_db():
         )''')
         
         # Create subjects table
-        cur.execute('''CREATE TABLE IF NOT EXISTS subjects (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conn.execute('''CREATE TABLE IF NOT EXISTS subjects (
+            id SERIAL PRIMARY KEY,
             class_id INTEGER NOT NULL,
             subject_name TEXT NOT NULL,
             UNIQUE(class_id, subject_name),
@@ -101,8 +101,8 @@ def init_db():
         )''')
         
         # Create attendance table
-        cur.execute('''CREATE TABLE IF NOT EXISTS attendance (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conn.execute('''CREATE TABLE IF NOT EXISTS attendance (
+            id SERIAL PRIMARY KEY,
             class_id INTEGER NOT NULL,
             subject_id INTEGER,
             att_date DATE NOT NULL,
@@ -113,29 +113,26 @@ def init_db():
             FOREIGN KEY (subject_id) REFERENCES subjects (id)
         )''')
         
-        # Enable foreign key constraints
-        cur.execute('PRAGMA foreign_keys = ON')
-        
         # Insert sample data if tables are empty
-        user_count = cur.execute('SELECT COUNT(*) FROM users').fetchone()[0]
+        user_count = conn.fetchone('SELECT COUNT(*) as count FROM users')['count']
         if user_count == 0:
-            cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
+            conn.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
                        ('teacher1', hashlib.sha256('pass123'.encode()).hexdigest(), 'teacher'))
-            cur.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
+            conn.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
                        ('admin1', hashlib.sha256('admin123'.encode()).hexdigest(), 'admin'))
         
-        class_count = cur.execute('SELECT COUNT(*) FROM classes').fetchone()[0]
+        class_count = conn.fetchone('SELECT COUNT(*) as count FROM classes')['count']
         if class_count == 0:
-            cur.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 10', 'A'))
-            cur.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 10', 'B'))
-            cur.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 11', 'A'))
+            conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 10', 'A'))
+            conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 10', 'B'))
+            conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", ('Class 11', 'A'))
         
-        student_count = cur.execute('SELECT COUNT(*) FROM students').fetchone()[0]
+        student_count = conn.fetchone('SELECT COUNT(*) as count FROM students')['count']
         if student_count == 0:
-            cur.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('001', 'Alice', 1))
-            cur.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('002', 'Bob', 1))
-            cur.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('003', 'Charlie', 2))
-            cur.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('004', 'Diana', 3))
+            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('001', 'Alice', 1))
+            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('002', 'Bob', 1))
+            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('003', 'Charlie', 2))
+            conn.execute("INSERT INTO students (reg_no, name, class_id) VALUES (?, ?, ?)", ('004', 'Diana', 3))
         
         conn.commit()
         conn.close()
