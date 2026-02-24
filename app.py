@@ -13,7 +13,8 @@ app.secret_key = os.environ.get('SECRET_KEY', 'scientia_secret_2026')  # Use env
 
 def get_db():
     """Get database connection with proper configuration"""
-    conn = sqlite3.connect('scientia.db')
+    db_path = os.environ.get('DATABASE_URL', 'scientia.db')
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute('PRAGMA foreign_keys = ON')  # Enable foreign key constraints
     return conn
