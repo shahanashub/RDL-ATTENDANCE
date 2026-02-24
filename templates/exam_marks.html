@@ -55,10 +55,10 @@
                 <div class="form-group">
                     <label
                         style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Subject</label>
-                    <select id="uploadSubject" name="subject_id"
+                    <input type="text" id="uploadSubject" name="subject_name" list="subjectSuggestions"
+                        placeholder="e.g. Mathematics"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
-                        <option value="">-- Subject --</option>
-                    </select>
+                    <datalist id="subjectSuggestions"></datalist>
                 </div>
                 <div class="form-group">
                     <label
@@ -271,13 +271,13 @@
 
         document.getElementById('uploadClassId').value = classId;
 
-        // Load subjects
+        // Load subjects into datalist
         const subjResp = await fetch(`/get_subjects/${classNum}-${section}`);
         const subjects = await subjResp.json();
-        const subjSelect = document.getElementById('uploadSubject');
-        subjSelect.innerHTML = '<option value="">-- Subject --</option>';
+        const subjDataList = document.getElementById('subjectSuggestions');
+        subjDataList.innerHTML = '';
         subjects.forEach(s => {
-            subjSelect.innerHTML += `<option value="${s.id}">${s.subject_name}</option>`;
+            subjDataList.innerHTML += `<option value="${s.subject_name}">`;
         });
 
         // Load students

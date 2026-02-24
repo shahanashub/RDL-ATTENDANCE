@@ -805,19 +805,30 @@ def upload_marks():
     
     try:
         class_id = request.form.get('class_id')
-        subject_id = request.form.get('subject_id')
+        subject_name = request.form.get('subject_name')
         exam_name = request.form.get('exam_name')
         total_mark = float(request.form.get('total_mark'))
         pass_mark = float(request.form.get('pass_mark'))
         
         conn = get_db()
         
-        # Get or create exam
-        exam = conn.execute('SELECT id FROM exams WHERE exam_name = ?', (exam_name,)).fetchone()
-        if not exam:
-            conn.execute('INSERT INTO exams (exam_name) VALUES (?)', (exam_name,))
+        # Get or create subject
+        subject = conn.execute('SELECT id FROM subjects WHERE class_id = ? AND LOWER(subject_name) = LOWER(?)', 
+                             (class_id, subject_name.strip())).fetchone()
+        if not subject:
+            conn.execute('INSERT INTO subjects (class_id, subject_name) VALUES (?, ?)', 
+                         (class_id, subject_name.strip()))
             conn.commit()
-            exam = conn.execute('SELECT id FROM exams WHERE exam_name = ?', (exam_name,)).fetchone()
+            subject = conn.execute('SELECT id FROM subjects WHERE class_id = ? AND LOWER(subject_name) = LOWER(?)', 
+                                 (class_id, subject_name.strip())).fetchone()
+        subject_id = subject['id']
+
+        # Get or create exam
+        exam = conn.execute('SELECT id FROM exams WHERE LOWER(exam_name) = LOWER(?)', (exam_name.strip(),)).fetchone()
+        if not exam:
+            conn.execute('INSERT INTO exams (exam_name) VALUES (?)', (exam_name.strip(),))
+            conn.commit()
+            exam = conn.execute('SELECT id FROM exams WHERE LOWER(exam_name) = LOWER(?)', (exam_name.strip(),)).fetchone()
         
         exam_id = exam['id']
         
