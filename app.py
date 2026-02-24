@@ -6,8 +6,10 @@ from functools import wraps
 import csv
 import io
 
+import os
+
 app = Flask(__name__)
-app.secret_key = 'scientia_secret_2026'  # Change in prod
+app.secret_key = os.environ.get('SECRET_KEY', 'scientia_secret_2026')  # Use env var in prod
 
 def get_db():
     """Get database connection with proper configuration"""
@@ -660,6 +662,8 @@ def attendance_history(class_id):
     return render_template('history.html', records=records, class_id=class_id, 
                           selected_subject=subject_id, subjects=subjects)
 
+# Initialize database on startup
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
