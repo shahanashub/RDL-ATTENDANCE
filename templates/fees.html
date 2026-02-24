@@ -77,18 +77,28 @@
                     <input type="number" name="balance" placeholder="0.00"
                         style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
                 </div>
-                <div class="form-group" style="grid-column: span 1;">
+                <div class="form-group">
                     <label
-                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Class
-                        & Section</label>
-                    <select name="class_id"
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Class</label>
+                    <select id="uploadClassNum" onchange="updateUploadClassId()"
                         style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
-                        <option value="">-- Select Class --</option>
-                        {% for cls in classes %}
-                        <option value="{{ cls.id }}">{{ cls.class_name }} - {{ cls.section }}</option>
-                        {% endfor %}
+                        <option value="">-- Class --</option>
+                        {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
                     </select>
                 </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 700; font-size: 14px; color: #525f7f;">Section</label>
+                    <select id="uploadSection" onchange="updateUploadClassId()"
+                        style="width: 100%; padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;" required>
+                        <option value="">-- Sec --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+                <input type="hidden" name="class_id" id="uploadClassId">
             </div>
             <div style="text-align: right;">
                 <button type="submit"
@@ -103,15 +113,24 @@
         style="display: none; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
         <h2 style="margin-top: 0; margin-bottom: 30px;">Filter Payment Status</h2>
         <div
-            style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 20px; align-items: end; margin-bottom: 40px;">
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) auto; gap: 20px; align-items: end; margin-bottom: 40px;">
             <div class="form-group">
                 <label>Class</label>
-                <select id="filterClass"
+                <select id="filterClassNum"
                     style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    <option value="">-- All Classes --</option>
-                    {% for cls in classes %}
-                    <option value="{{ cls.id }}">{{ cls.class_name }} - {{ cls.section }}</option>
-                    {% endfor %}
+                    <option value="">-- Class --</option>
+                    {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Section</label>
+                <select id="filterSection"
+                    style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <option value="">-- Sec --</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
                 </select>
             </div>
             <div class="form-group">
@@ -146,14 +165,22 @@
     <div style="background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
         <h2 style="margin-top: 0; margin-bottom: 30px; color: #32325d;">Student Fee Records</h2>
         <div
-            style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: end; margin-bottom: 40px;">
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) auto; gap: 20px; align-items: end; margin-bottom: 40px;">
             <div class="form-group">
                 <label>Class</label>
-                <select id="teacherClass"
+                <select id="teacherClassNum"
                     style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    {% for cls in classes %}
-                    <option value="{{ cls.id }}">{{ cls.class_name }} - {{ cls.section }}</option>
-                    {% endfor %}
+                    {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Section</label>
+                <select id="teacherSection"
+                    style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
                 </select>
             </div>
             <div class="form-group">
@@ -180,7 +207,18 @@
         <p style="color: #636b7d; margin-bottom: 35px;">Verify your identity to view fee details</p>
 
         <div
-            style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 600px; margin: 0 auto 25px auto;">
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; max-width: 800px; margin: 0 auto 25px auto;">
+            <select id="studentClassNum" style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
+                <option value="">-- Class --</option>
+                {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+            <select id="studentSection" style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
+                <option value="">-- Sec --</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
             <input type="text" id="verifyName" placeholder="Full Student Name"
                 style="padding: 14px; border: 2px solid #e9ecef; border-radius: 8px;">
             <input type="text" id="verifyReg" placeholder="Registration Number"
@@ -201,6 +239,20 @@
 </div>
 
 <script>
+    const classesMap = {
+        {% for cls in classes %}
+    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': { { cls.id } },
+    {% endfor %}
+    };
+
+    function updateUploadClassId() {
+        const num = document.getElementById('uploadClassNum').value;
+        const sec = document.getElementById('uploadSection').value;
+        if (num && sec) {
+            document.getElementById('uploadClassId').value = classesMap[`${num}-${sec}`] || '';
+        }
+    }
+
     function toggleSection(sec) {
         document.getElementById('sectionUpload').style.display = sec === 'upload' ? 'block' : 'none';
         document.getElementById('sectionView').style.display = sec === 'view' ? 'block' : 'none';
@@ -224,15 +276,21 @@
     async function fetchFees(role) {
         let classId, month, regNo, name;
         if (role === 'admin') {
-            classId = document.getElementById('filterClass').value;
+            const num = document.getElementById('filterClassNum').value;
+            const sec = document.getElementById('filterSection').value;
+            if (num && sec) classId = classesMap[`${num}-${sec}`];
             month = document.getElementById('filterMonth').value;
         } else if (role === 'teacher') {
-            classId = document.getElementById('teacherClass').value;
+            const num = document.getElementById('teacherClassNum').value;
+            const sec = document.getElementById('teacherSection').value;
+            if (num && sec) classId = classesMap[`${num}-${sec}`];
             month = document.getElementById('teacherMonth').value;
         } else {
+            const num = document.getElementById('studentClassNum').value;
+            const sec = document.getElementById('studentSection').value;
             regNo = document.getElementById('verifyReg').value;
             name = document.getElementById('verifyName').value;
-            if (!regNo || !name) return alert('Enter name and ID');
+            if (!regNo || !name || !num || !sec) return alert('Enter all details');
         }
 
         let url = `/get_fees?`;

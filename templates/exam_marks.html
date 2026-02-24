@@ -30,17 +30,26 @@
         <h2 style="margin-top: 0; margin-bottom: 25px; font-size: 20px; color: #32325d;">Upload New Exam Marks</h2>
         <form action="{{ url_for('upload_marks') }}" method="POST" id="uploadForm">
             <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;">
                 <div class="form-group">
                     <label
                         style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Class</label>
-                    <select id="uploadClass" name="class_id" onchange="loadStudentsForUpload()"
+                    <select id="uploadClassNum" name="class_num" onchange="loadStudentsForUpload()"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
-                        <option value="">-- Select Class --</option>
-                        {% for cls in classes %}
-                        <option value="{{ cls.id }}" data-num="{{ cls.class_name.replace('Class ', '') }}"
-                            data-sec="{{ cls.section }}">{{ cls.class_name }} - {{ cls.section }}</option>
-                        {% endfor %}
+                        <option value="">-- Class --</option>
+                        {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label
+                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Section</label>
+                    <select id="uploadSection" name="section" onchange="loadStudentsForUpload()"
+                        style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
+                        <option value="">-- Sec --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -48,7 +57,7 @@
                         style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Subject</label>
                     <select id="uploadSubject" name="subject_id"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
-                        <option value="">-- Select Subject --</option>
+                        <option value="">-- Subject --</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -60,19 +69,19 @@
                 </div>
                 <div class="form-group">
                     <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Total
-                        Marks</label>
+                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Total</label>
                     <input type="number" name="total_mark" placeholder="100"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                 </div>
                 <div class="form-group">
                     <label
-                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Pass
-                        Marks</label>
+                        style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Pass</label>
                     <input type="number" name="pass_mark" placeholder="35"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                 </div>
             </div>
+
+            <input type="hidden" id="uploadClassId" name="class_id">
 
             <div id="studentMarksTable" style="display: none; margin-bottom: 25px;">
                 <table style="width: 100%; border-collapse: collapse;">
@@ -102,16 +111,26 @@
         style="display: none; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); border-left: 5px solid #11cdef;">
         <h2 style="margin-top: 0; margin-bottom: 25px; font-size: 20px; color: #32325d;">View Performance History</h2>
         <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; align-items: end;">
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; align-items: end;">
             <div class="form-group">
                 <label
                     style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Class</label>
-                <select id="viewClass"
+                <select id="viewClassNum"
                     style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;">
-                    <option value="">-- Select Class --</option>
-                    {% for cls in classes %}
-                    <option value="{{ cls.id }}">{{ cls.class_name }} - {{ cls.section }}</option>
-                    {% endfor %}
+                    <option value="">-- Class --</option>
+                    {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label
+                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Section</label>
+                <select id="viewSection"
+                    style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;">
+                    <option value="">-- Sec --</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
                 </select>
             </div>
             <div class="form-group">
@@ -152,7 +171,28 @@
         style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); border-top: 5px solid #fb6340;">
         <h2 style="margin-top: 0; margin-bottom: 30px; text-align: center; color: #32325d;">My Performance</h2>
         <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 800px; margin: 0 auto 40px auto; align-items: end;">
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; max-width: 900px; margin: 0 auto 40px auto; align-items: end;">
+            <div class="form-group">
+                <label
+                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Class</label>
+                <select id="studentClassNum"
+                    style="width: 100%; padding: 12px; border: 2px solid #fb6340; border-radius: 8px;">
+                    <option value="">-- Class --</option>
+                    {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label
+                    style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Section</label>
+                <select id="studentSection"
+                    style="width: 100%; padding: 12px; border: 2px solid #fb6340; border-radius: 8px;">
+                    <option value="">-- Sec --</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label
                     style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #32325d;">Select
@@ -194,6 +234,12 @@
 </div>
 
 <script>
+    const classesMap = {
+        {% for cls in classes %}
+    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': { { cls.id } },
+    {% endfor %}
+    };
+
     function showSection(section) {
         document.getElementById('sectionUpload').style.display = section === 'upload' ? 'block' : 'none';
         document.getElementById('sectionView').style.display = section === 'view' ? 'block' : 'none';
@@ -215,29 +261,30 @@
     }
 
     async function loadStudentsForUpload() {
-        const classSelect = document.getElementById('uploadClass');
-        const classId = classSelect.value;
-        const selectedOption = classSelect.options[classSelect.selectedIndex];
-        const classNum = selectedOption.getAttribute('data-num');
-        const section = selectedOption.getAttribute('data-sec');
+        const classNum = document.getElementById('uploadClassNum').value;
+        const section = document.getElementById('uploadSection').value;
 
+        if (!classNum || !section) return;
+
+        const classId = classesMap[`${classNum}-${section}`];
         if (!classId) return;
+
+        document.getElementById('uploadClassId').value = classId;
 
         // Load subjects
         const subjResp = await fetch(`/get_subjects/${classNum}-${section}`);
         const subjects = await subjResp.json();
         const subjSelect = document.getElementById('uploadSubject');
-        subjSelect.innerHTML = '<option value="">-- Select Subject --</option>';
+        subjSelect.innerHTML = '<option value="">-- Subject --</option>';
         subjects.forEach(s => {
             subjSelect.innerHTML += `<option value="${s.id}">${s.subject_name}</option>`;
         });
 
-        // Load students (we'll fetch from attendance history since it already lists students)
+        // Load students
         const histResp = await fetch(`/get_attendance_history/${classId}`);
         const histData = await histResp.json();
 
         if (histData.success && histData.records.length > 0) {
-            // Just take students from the first (latest) history entry
             const students = histData.records[0].students;
             document.getElementById('studentMarksTable').style.display = 'block';
             const tbody = document.getElementById('uploadTbody');
@@ -258,9 +305,14 @@
     }
 
     async function fetchResults() {
-        const classId = document.getElementById('viewClass').value;
+        const classNum = document.getElementById('viewClassNum').value;
+        const section = document.getElementById('viewSection').value;
         const examId = document.getElementById('viewExam').value;
-        if (!classId || !examId) return alert('Select class and exam');
+
+        if (!classNum || !section || !examId) return alert('Select class, section and exam');
+
+        const classId = classesMap[`${classNum}-${section}`];
+        if (!classId) return alert('Class not found');
 
         const resp = await fetch(`/get_exam_results?class_id=${classId}&exam_id=${examId}`);
         const data = await resp.json();
@@ -295,8 +347,11 @@
     }
 
     async function fetchStudentResults() {
+        const classNum = document.getElementById('studentClassNum').value;
+        const section = document.getElementById('studentSection').value;
         const examId = document.getElementById('studentExam').value;
-        if (!examId) return alert('Select an exam');
+
+        if (!classNum || !section || !examId) return alert('Select class, section and exam');
 
         const resp = await fetch(`/get_exam_results?exam_id=${examId}`);
         const data = await resp.json();
