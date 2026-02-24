@@ -443,8 +443,12 @@ def add_subjects():
             try:
                 conn.execute('INSERT INTO subjects (class_id, subject_name) VALUES (?, ?)',
                             (class_id, subject))
+                conn.commit()
                 added += 1
             except IntegrityErrors:
+                # For Postgres, we must rollback the failed transaction before continuing
+                if hasattr(conn.conn, 'rollback'):
+                    conn.conn.rollback()
                 duplicates += 1
 
         conn.commit()
@@ -656,11 +660,20 @@ def get_attendance_history(class_id):
     
     for d in history:
         att_date = d['att_date']
-        students_att = conn.execute('''
+        
+        # Correctly handle NULL subject_id in the LEFT JOIN for both SQLite and Postgres
+        if subject_id:
+            subj_clause = "a.subject_id = ?"
+            subj_params = (att_date, class_id, subject_id, class_id)
+        else:
+            subj_clause = "a.subject_id IS NULL"
+            subj_params = (att_date, class_id, class_id)
+            
+        students_att = conn.execute(f'''
             SELECT s.reg_no, s.name, a.present FROM students s
-            LEFT JOIN attendance a ON s.reg_no = a.reg_no AND a.att_date = ? AND a.class_id = ? AND a.subject_id = ?
+            LEFT JOIN attendance a ON s.reg_no = a.reg_no AND a.att_date = ? AND a.class_id = ? AND {subj_clause}
             WHERE s.class_id = ?
-        ''', (att_date, class_id, subject_id, class_id)).fetchall()
+        ''', subj_params).fetchall()
         
         records.append({
             'date': att_date,
@@ -704,11 +717,20 @@ def attendance_history(class_id):
     
     for d in history:
         att_date = d['att_date']
-        students_att = conn.execute('''
+        
+        # Correctly handle NULL subject_id in the LEFT JOIN
+        if subject_id:
+            subj_clause = "a.subject_id = ?"
+            subj_params = (att_date, class_id, subject_id, class_id)
+        else:
+            subj_clause = "a.subject_id IS NULL"
+            subj_params = (att_date, class_id, class_id)
+            
+        students_att = conn.execute(f'''
             SELECT s.reg_no, s.name, a.present FROM students s
-            LEFT JOIN attendance a ON s.reg_no = a.reg_no AND a.att_date = ? AND a.class_id = ? AND a.subject_id = ?
+            LEFT JOIN attendance a ON s.reg_no = a.reg_no AND a.att_date = ? AND a.class_id = ? AND {subj_clause}
             WHERE s.class_id = ?
-        ''', (att_date, class_id, subject_id, class_id)).fetchall()
+        ''', subj_params).fetchall()
         
         records.append({'date': att_date, 'class': class_info, 'students': students_att})
     
