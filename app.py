@@ -12,6 +12,11 @@ try:
 except ImportError:
     psycopg2 = None
 
+# For cross-database compatibility
+IntegrityErrors = (sqlite3.IntegrityError,)
+if psycopg2:
+    IntegrityErrors += (psycopg2.IntegrityError,)
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'scientia_secret_2026')  # Use env var in prod
 
@@ -36,19 +41,37 @@ class PostgresWrapper:
         cur.close()
         return res
 
+class SqliteWrapper:
+    def __init__(self, conn):
+        self.conn = conn
+    def cursor(self):
+        return self.conn.cursor()
+    def execute(self, sql, params=None):
+        return self.conn.execute(sql, params or ())
+    def commit(self):
+        self.conn.commit()
+    def close(self):
+        self.conn.close()
+    def fetchone(self, sql, params=None):
+        cur = self.execute(sql, params)
+        res = cur.fetchone()
+        return res
+
 def get_db():
     db_url = os.environ.get('DATABASE_URL', 'scientia.db')
     if db_url.startswith('postgres://') or db_url.startswith('postgresql://'):
         # Fix for Render: postgres:// URLs must be postgresql://
         if db_url.startswith('postgres://'):
             db_url = db_url.replace('postgres://', 'postgresql://', 1)
+        if psycopg2 is None:
+            raise ImportError("psycopg2 is not installed. Please check your requirements.txt")
         conn = psycopg2.connect(db_url)
         return PostgresWrapper(conn)
     else:
         conn = sqlite3.connect(db_url)
         conn.row_factory = sqlite3.Row
         conn.execute('PRAGMA foreign_keys = ON')
-        return conn
+        return SqliteWrapper(conn)
 
 def login_required(f):
     @wraps(f)
@@ -62,27 +85,31 @@ def init_db():
     """Initialize database with all required tables and sample data"""
     try:
         conn = get_db()
-        cur = conn.cursor()
+        
+        # Determine if we're using Postgres for specific syntax
+        is_postgres = isinstance(conn, PostgresWrapper)
+        id_type = "SERIAL" if is_postgres else "INTEGER"
+        pk_type = "SERIAL PRIMARY KEY" if is_postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
         
         # Create users table
-        conn.execute('''CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS users (
+            id {pk_type},
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT NOT NULL
         )''')
         
         # Create classes table
-        conn.execute('''CREATE TABLE IF NOT EXISTS classes (
-            id SERIAL PRIMARY KEY,
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS classes (
+            id {pk_type},
             class_name TEXT NOT NULL,
             section TEXT NOT NULL,
             UNIQUE(class_name, section)
         )''')
         
         # Create students table
-        conn.execute('''CREATE TABLE IF NOT EXISTS students (
-            id SERIAL PRIMARY KEY,
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS students (
+            id {pk_type},
             reg_no TEXT UNIQUE NOT NULL,
             name TEXT NOT NULL,
             class_id INTEGER,
@@ -92,8 +119,8 @@ def init_db():
         )''')
         
         # Create subjects table
-        conn.execute('''CREATE TABLE IF NOT EXISTS subjects (
-            id SERIAL PRIMARY KEY,
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS subjects (
+            id {pk_type},
             class_id INTEGER NOT NULL,
             subject_name TEXT NOT NULL,
             UNIQUE(class_id, subject_name),
@@ -101,8 +128,8 @@ def init_db():
         )''')
         
         # Create attendance table
-        conn.execute('''CREATE TABLE IF NOT EXISTS attendance (
-            id SERIAL PRIMARY KEY,
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS attendance (
+            id {pk_type},
             class_id INTEGER NOT NULL,
             subject_id INTEGER,
             att_date DATE NOT NULL,
@@ -136,9 +163,9 @@ def init_db():
         
         conn.commit()
         conn.close()
-        print('✓ Database initialized successfully')
+        print('Database initialized successfully')
     except Exception as e:
-        print(f'✗ Database initialization error: {str(e)}')
+        print(f'Database initialization error: {str(e)}')
 
 def is_teacher_or_admin():
     return session.get('role') in ['teacher', 'admin']
@@ -224,14 +251,15 @@ def register():
             flash('Registered successfully! Welcome to Scientia', 'success')
             return redirect(url_for('dashboard'))
             
-        except sqlite3.IntegrityError as e:
+        except IntegrityErrors as e:
             conn.close()
-            if 'username' in str(e).lower():
+            error_msg = str(e).lower()
+            if 'username' in error_msg:
                 flash('Username already exists. Please choose a different username.', 'danger')
-            elif 'reg_no' in str(e).lower():
+            elif 'reg_no' in error_msg:
                 flash('Registration number already exists.', 'danger')
             else:
-                flash('An error occurred. Please try again.', 'danger')
+                flash(f'Database error: {str(e)}', 'danger')
             return redirect(url_for('register'))
         except Exception as e:
             if 'conn' in locals():
@@ -415,7 +443,7 @@ def add_subjects():
                 conn.execute('INSERT INTO subjects (class_id, subject_name) VALUES (?, ?)',
                             (class_id, subject))
                 added += 1
-            except sqlite3.IntegrityError:
+            except IntegrityErrors:
                 duplicates += 1
 
         conn.commit()
