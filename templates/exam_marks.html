@@ -267,7 +267,7 @@
     }
     const classesMap = {
         {% for cls in classes %}
-    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": {{ cls.id }},
+    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": { { cls.id } },
     {% endfor %}
     };
 
@@ -288,55 +288,78 @@
     }
 
     async function loadStudentsForUpload() {
-        const classNum = document.getElementById('uploadClassNum').value;
-        const section = document.getElementById('uploadSection').value;
-        if (!classNum || !section) return;
+        try {
+            const classNum = document.getElementById('uploadClassNum').value;
+            const section = document.getElementById('uploadSection').value;
+            console.log('loadStudentsForUpload called with:', classNum, section);
 
-        const key = classNum.trim().toUpperCase() + '-' + section.trim().toUpperCase();
-        console.log('Lookup Key:', key, 'Available Keys:', Object.keys(classesMap));
-        const classId = classesMap[key];
+            if (!classNum || !section) {
+                alert('Please select BOTH Class and Section first.');
+                return;
+            }
 
-        if (!classId) {
-            alert(`Error: Class "${key}" not found in system map. Available: ${Object.keys(classesMap).join(', ')}`);
-            return;
-        }
+            const key = classNum.trim().toUpperCase() + '-' + section.trim().toUpperCase();
+            console.log('Lookup Key:', key, 'Available Keys:', Object.keys(classesMap));
+            const classId = classesMap[key];
 
-        document.getElementById('uploadClassId').value = classId;
+            if (!classId) {
+                alert(`Error: Class "${key}" not found in system map.\nGenerated Key: "${key}"\nAvailable: ${Object.keys(classesMap).join(', ')}\n\nPlease ensure Class and Section are correctly selected.`);
+                return;
+            }
 
-        // Async population of subjects
-        fetch(`/get_subjects/${classNum}-${section}`).then(r => r.json()).then(subjects => {
-            const dl = document.getElementById('subjectSuggestions');
-            dl.innerHTML = ''; subjects.forEach(s => dl.innerHTML += `<option value="${s.subject_name}">`);
-        });
+            document.getElementById('uploadClassId').value = classId;
 
-        // Load students
-        const studResp = await fetch(`/get_class_students/${classId}`);
-        const data = await studResp.json();
+            // Load subjects
+            fetch(`/get_subjects/${classNum}-${section}`)
+                .then(r => r.json())
+                .then(subjects => {
+                    const dl = document.getElementById('subjectSuggestions');
+                    dl.innerHTML = '';
+                    subjects.forEach(s => dl.innerHTML += `<option value="${s.subject_name}">`);
+                    console.log('Subjects loaded:', subjects.length);
+                })
+                .catch(err => console.error('Subject fetch error:', err));
 
-        if (data.success && data.students.length > 0) {
-            document.getElementById('studentMarksTable').style.display = 'block';
-            const tbody = document.getElementById('uploadTbody');
-            tbody.innerHTML = '';
-            data.students.forEach(s => {
-                tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid #f2f4f6;">
-                        <td style="padding: 12px; font-weight: 600;">${s.name}</td>
-                        <td style="padding: 12px; color: #8898aa;">${s.reg_no}</td>
-                        <td style="padding: 12px; text-align: center;">
-                            <input type="hidden" name="reg_nos[]" value="${s.reg_no}">
-                            <input type="number" step="0.5" name="marks[]" oninput="updateLiveRow(this)" placeholder="Score" 
-                                style="padding: 8px; border: 1px solid #ced4da; border-radius: 4px; width: 80px; text-align: center;">
-                        </td>
-                        <td style="padding: 12px; text-align: center;">
-                            <span class="live-status" style="padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #eee;">-</span>
-                        </td>
-                        <td style="padding: 12px; text-align: center; font-weight: 700;" class="live-percent">-</td>
-                    </tr>
-                `;
-            });
-        } else {
-            document.getElementById('studentMarksTable').style.display = 'none';
-            alert('No students found for this class/section.');
+            // Load students
+            console.log('Fetching students for ID:', classId);
+            const studResp = await fetch(`/get_class_students/${classId}`);
+
+            if (!studResp.ok) {
+                throw new Error(`Server returned status ${studResp.status}: ${studResp.statusText}`);
+            }
+
+            const data = await studResp.json();
+            console.log('Student data received:', data);
+
+            if (data.success && data.students && data.students.length > 0) {
+                document.getElementById('studentMarksTable').style.display = 'block';
+                const tbody = document.getElementById('uploadTbody');
+                tbody.innerHTML = '';
+                data.students.forEach(s => {
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #f2f4f6;">
+                            <td style="padding: 12px; font-weight: 600;">${s.name}</td>
+                            <td style="padding: 12px; color: #8898aa;">${s.reg_no}</td>
+                            <td style="padding: 12px; text-align: center;">
+                                <input type="hidden" name="reg_nos[]" value="${s.reg_no}">
+                                <input type="number" step="0.5" name="marks[]" oninput="updateLiveRow(this)" placeholder="Score" 
+                                    style="padding: 8px; border: 1px solid #ced4da; border-radius: 4px; width: 80px; text-align: center;">
+                            </td>
+                            <td style="padding: 12px; text-align: center;">
+                                <span class="live-status" style="padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #eee;">-</span>
+                            </td>
+                            <td style="padding: 12px; text-align: center; font-weight: 700;" class="live-percent">-</td>
+                        </tr>
+                    `;
+                });
+                console.log('Table populated with', data.students.length, 'students');
+            } else {
+                document.getElementById('studentMarksTable').style.display = 'none';
+                alert('No students found for this class/section in the database.');
+            }
+        } catch (error) {
+            console.error('Critical failure in loadStudentsForUpload:', error);
+            alert('Critical Error: ' + error.message + '\n\nPlease check the console for more details.');
         }
     }
 
