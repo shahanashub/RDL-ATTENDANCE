@@ -53,7 +53,7 @@
                         style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Section</label>
                     <select id="uploadSection" name="section" onchange="loadStudentsForUpload()"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
-                        <option value="">-- Sec --</option>
+                        <option value="">-- Section --</option>
                         <option value="A">Section A</option>
                         <option value="B">Section B</option>
                         <option value="C">Section C</option>
@@ -64,7 +64,7 @@
                     <label
                         style="display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px;">Subject</label>
                     <input type="text" id="uploadSubject" name="subject_name" list="subjectSuggestions"
-                        placeholder="Mathematics"
+                        placeholder="eg:- Mathematics"
                         style="width: 100%; padding: 12px; border: 2px solid #e3e3e3; border-radius: 8px;" required>
                     <datalist id="subjectSuggestions"></datalist>
                 </div>
@@ -92,8 +92,8 @@
             <input type="hidden" id="uploadClassId" name="class_id">
 
             <div style="margin-bottom: 25px; text-align: center;">
-                <button type="button" onclick="loadStudentsForUpload()"
-                    style="padding: 10px 20px; background: #f4f5f7; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; font-weight: 700; color: #525f7f;">🔄
+                <button type="button" id="btnLoadStudents" onclick="loadStudentsForUpload()"
+                    style="padding: 10px 20px; background: #f4f5f7; border: 1px solid #ced4da; border-radius: 6px; cursor: pointer; font-weight: 700; color: #525f7f; transition: all 0.2s;">🔄
                     Load Student List</button>
             </div>
 
@@ -191,8 +191,8 @@
                     {% for exam in exams %}<option value="{{ exam.id }}">{{ exam.exam_name }}</option>{% endfor %}
                 </select>
             </div>
-            <button onclick="fetchResults()"
-                style="padding: 14px 24px; background: #5e72e4; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔍
+            <button id="btnSearchHistory" onclick="fetchResults()"
+                style="padding: 14px 24px; background: #5e72e4; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;">🔍
                 Search</button>
         </div>
 
@@ -288,6 +288,8 @@
     }
 
     async function loadStudentsForUpload() {
+        const btn = document.getElementById('btnLoadStudents');
+        const originalText = btn.innerHTML;
         try {
             const classNum = document.getElementById('uploadClassNum').value;
             const section = document.getElementById('uploadSection').value;
@@ -297,6 +299,10 @@
                 alert('Please select BOTH Class and Section first.');
                 return;
             }
+
+            btn.innerHTML = '⏳ Loading...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
 
             const key = classNum.trim().toUpperCase() + '-' + section.trim().toUpperCase();
             console.log('Lookup Key:', key, 'Available Keys:', Object.keys(classesMap));
@@ -360,6 +366,10 @@
         } catch (error) {
             console.error('Critical failure in loadStudentsForUpload:', error);
             alert('Critical Error: ' + error.message + '\n\nPlease check the console for more details.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            btn.style.opacity = '1';
         }
     }
 
@@ -384,50 +394,66 @@
     }
 
     async function fetchResults() {
-        const num = document.getElementById('viewClassNum').value;
-        const sec = document.getElementById('viewSection').value;
-        const exam = document.getElementById('viewExam').value;
-        if (!num || !sec || !exam) return alert('Select all filters');
+        const btn = document.getElementById('btnSearchHistory');
+        const originalText = btn.innerHTML;
+        try {
+            const num = document.getElementById('viewClassNum').value;
+            const sec = document.getElementById('viewSection').value;
+            const exam = document.getElementById('viewExam').value;
+            if (!num || !sec || !exam) return alert('Select all filters');
 
-        const key = num.trim().toUpperCase() + '-' + sec.trim().toUpperCase();
-        const classId = classesMap[key];
+            btn.innerHTML = '⏳ Searching...';
+            btn.disabled = true;
 
-        if (!classId) {
-            alert(`Error: Class "${key}" not found.`);
-            return;
-        }
+            const key = num.trim().toUpperCase() + '-' + sec.trim().toUpperCase();
+            const classId = classesMap[key];
 
-        const resp = await fetch(`/get_exam_results?class_id=${classId}&exam_id=${exam}`);
-        const data = await resp.json();
-
-        const table = document.getElementById('resultsTable');
-        const tbody = document.getElementById('resultsTbody');
-        tbody.innerHTML = ''; // Clear results
-
-        if (data.success) {
-            table.style.display = 'block';
-
-            // Add Action header if not present
-            const thead = table.querySelector('thead tr');
-            if (thead.cells.length < 6) {
-                thead.innerHTML += '<th style="padding: 15px; text-align: center; font-size: 12px; color: #8898aa;">Action</th>';
+            if (!classId) {
+                alert(`Error: Class "${key}" not found.`);
+                return;
             }
 
-            data.results.forEach(r => {
-                const isPass = r.marks_scored >= r.pass_mark;
-                tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid #f2f4f6;">
-                        <td style="padding: 15px;"><b>${r.student_name}</b><br><small>${r.reg_no}</small></td>
-                        <td style="padding: 15px;">${r.subject_name}</td>
-                        <td style="padding: 15px; text-align: center;"><b>${r.marks_scored}</b> / ${r.total_marks}</td>
-                        <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
-                        <td style="padding: 15px; text-align: center;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
-                        <td style="padding: 15px; text-align: center;">
-                            <button onclick="editMark(${r.id}, ${r.marks_scored})" style="background: none; border: none; color: #5e72e4; cursor: pointer; font-size: 16px; margin-right: 10px;" title="Edit Mark">✏️</button>
-                            <button onclick="deleteMark(${classId}, '${r.subject_name}', ${exam}, '${r.reg_no}')" style="background: none; border: none; color: #f5365c; cursor: pointer; font-size: 16px;" title="Delete Mark">🗑️</button>
-                        </td>
-                    </tr>`;
-            });
+            const resp = await fetch(`/get_exam_results?class_id=${classId}&exam_id=${exam}`);
+            const data = await resp.json();
+
+            const table = document.getElementById('resultsTable');
+            const tbody = document.getElementById('resultsTbody');
+            tbody.innerHTML = ''; // Clear results
+
+            if (data.success && data.results && data.results.length > 0) {
+                table.style.display = 'block';
+
+                // Add Action header if not present
+                const thead = table.querySelector('thead tr');
+                if (thead.cells.length < 6) {
+                    thead.innerHTML += '<th style="padding: 15px; text-align: center; font-size: 12px; color: #8898aa;">Action</th>';
+                }
+
+                data.results.forEach(r => {
+                    const isPass = r.marks_scored >= r.pass_mark;
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #f2f4f6;">
+                            <td style="padding: 15px;"><b>${r.student_name}</b><br><small>${r.reg_no}</small></td>
+                            <td style="padding: 15px;">${r.subject_name}</td>
+                            <td style="padding: 15px; text-align: center;"><b>${r.marks_scored}</b> / ${r.total_marks}</td>
+                            <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
+                            <td style="padding: 15px; text-align: center;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
+                            <td style="padding: 15px; text-align: center;">
+                                <button onclick="editMark(${r.id}, ${r.marks_scored})" style="background: none; border: none; color: #5e72e4; cursor: pointer; font-size: 16px; margin-right: 10px;" title="Edit Mark">✏️</button>
+                                <button onclick="deleteMark(${classId}, '${r.subject_name}', ${exam}, '${r.reg_no}')" style="background: none; border: none; color: #f5365c; cursor: pointer; font-size: 16px;" title="Delete Mark">🗑️</button>
+                            </td>
+                        </tr>`;
+                });
+            } else {
+                table.style.display = 'none';
+                alert('No results found for the selected criteria.');
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
+            alert('Failed to fetch results');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     }
 
