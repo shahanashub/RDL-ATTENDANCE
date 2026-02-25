@@ -5,6 +5,7 @@
 
 
     <div style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
+        {% if session.role in ['admin', 'teacher'] %}
         <a href="{{ url_for('attendance') }}" style="
             display: inline-block;
             padding: 18px 48px;
@@ -40,6 +41,7 @@
             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(17, 205, 239, 0.4)'">
             📜 Attendance History
         </a>
+        {% endif %}
 
         <a href="{{ url_for('education') }}" style="
             display: inline-block;
