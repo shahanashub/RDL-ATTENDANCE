@@ -178,23 +178,30 @@ def init_db():
         )''')
         
         # Insert sample data if tables are empty
-        user_count = conn.fetchone('SELECT COUNT(*) as count FROM users')['count']
+        user_count_res = conn.fetchone('SELECT COUNT(*) as count FROM users')
+        user_count = user_count_res['count'] if user_count_res else 0
         if user_count == 0:
+            print("Inserting sample users...", flush=True)
             conn.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
                        ('teacher1', hashlib.sha256('pass123'.encode()).hexdigest(), 'teacher'))
             conn.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", 
                        ('admin1', hashlib.sha256('admin123'.encode()).hexdigest(), 'admin'))
+            conn.commit()
         
         # Insert more comprehensive sample data if empty
-        class_count = conn.fetchone('SELECT COUNT(*) as count FROM classes')['count']
+        class_count_res = conn.fetchone('SELECT COUNT(*) as count FROM classes')
+        class_count = class_count_res['count'] if class_count_res else 0
         if class_count == 0:
+            print("Inserting sample classes...", flush=True)
             for i in range(1, 13):
                 conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", (f'Class {i}', 'A'))
                 conn.execute("INSERT INTO classes (class_name, section) VALUES (?, ?)", (f'Class {i}', 'B'))
             conn.commit()
         
-        student_count = conn.fetchone('SELECT COUNT(*) as count FROM students')['count']
+        student_count_res = conn.fetchone('SELECT COUNT(*) as count FROM students')
+        student_count = student_count_res['count'] if student_count_res else 0
         if student_count == 0:
+            print("Inserting sample students...", flush=True)
             # Add at least 2 students to every class 'A' for testing
             classes = conn.execute("SELECT id, class_name FROM classes WHERE section = 'A'").fetchall()
             for cls in classes:
@@ -207,9 +214,13 @@ def init_db():
             conn.commit()
         
         conn.close()
-        print('Database initialized with full sample data', flush=True)
+        print('✓ Database initialized successfully', flush=True)
     except Exception as e:
-        print(f'Database initialization error: {str(e)}', flush=True)
+        print(f'❌ Database initialization error: {str(e)}', flush=True)
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "healthy"}), 200
 
 def is_teacher_or_admin():
     return session.get('role') in ['teacher', 'admin']
