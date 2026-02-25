@@ -267,7 +267,7 @@
     }
     const classesMap = {
         {% for cls in classes %}
-    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": {{ cls.id }},
+    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": { { cls.id } },
     {% endfor %}
     };
 
@@ -424,32 +424,81 @@
             const data = await resp.json();
 
             const table = document.getElementById('resultsTable');
+            const theadTr = table.querySelector('thead tr');
             const tbody = document.getElementById('resultsTbody');
-            tbody.innerHTML = ''; // Clear results
+            tbody.innerHTML = '';
 
             if (data.success && data.results && data.results.length > 0) {
                 table.style.display = 'block';
 
-                // Add Action header if not present
-                const thead = table.querySelector('thead tr');
-                if (thead.cells.length < 6) {
-                    thead.innerHTML += '<th style="padding: 15px; text-align: center; font-size: 12px; color: #8898aa;">Action</th>';
-                }
-
+                // 1. Group results by student and identify all subjects
+                const students = {};
+                const subjectsSet = new Set();
                 data.results.forEach(r => {
-                    const isPass = r.marks_scored >= r.pass_mark;
-                    tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #f2f4f6;">
-                            <td style="padding: 15px;"><b>${r.student_name}</b><br><small>${r.reg_no}</small></td>
-                            <td style="padding: 15px;">${r.subject_name}</td>
-                            <td style="padding: 15px; text-align: center;"><b>${r.marks_scored}</b> / ${r.total_marks}</td>
-                            <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
-                            <td style="padding: 15px; text-align: center;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
-                            <td style="padding: 15px; text-align: center;">
-                                <button onclick="editMark(${r.id}, ${r.marks_scored})" style="background: none; border: none; color: #5e72e4; cursor: pointer; font-size: 16px; margin-right: 10px;" title="Edit Mark">✏️</button>
-                                <button onclick="deleteMark(${classId}, '${r.subject_name}', ${exam}, '${r.reg_no}')" style="background: none; border: none; color: #f5365c; cursor: pointer; font-size: 16px;" title="Delete Mark">🗑️</button>
-                            </td>
-                        </tr>`;
+                    if (!students[r.reg_no]) {
+                        students[r.reg_no] = {
+                            name: r.student_name,
+                            reg_no: r.reg_no,
+                            marks: {},
+                            totalScored: 0,
+                            totalPotential: 0
+                        };
+                    }
+                    students[r.reg_no].marks[r.subject_name] = r;
+                    students[r.reg_no].totalScored += r.marks_scored;
+                    students[r.reg_no].totalPotential += r.total_marks;
+                    subjectsSet.add(r.subject_name);
+                });
+
+                const sortedSubjects = Array.from(subjectsSet).sort();
+
+                // 2. Build Dynamic Header
+                let headerContent = `<th style="padding: 15px; text-align: left; font-size: 11px; color: #8898aa; text-transform: uppercase;">Student Info</th>`;
+                sortedSubjects.forEach(sub => {
+                    headerContent += `<th style="padding: 15px; text-align: center; font-size: 11px; color: #8898aa; text-transform: uppercase;">${sub}</th>`;
+                    headerContent += `<th style="padding: 15px; text-align: center; font-size: 11px; color: #8898aa; text-transform: uppercase;">Status</th>`;
+                });
+                headerContent += `<th style="padding: 15px; text-align: center; font-size: 11px; color: #8898aa; text-transform: uppercase;">Total Marks</th>`;
+                headerContent += `<th style="padding: 15px; text-align: center; font-size: 11px; color: #8898aa; text-transform: uppercase;">Overall %</th>`;
+                headerContent += `<th style="padding: 15px; text-align: center; font-size: 11px; color: #8898aa; text-transform: uppercase;">Action</th>`;
+                theadTr.innerHTML = headerContent;
+
+                // 3. Build Body Rows
+                Object.values(students).forEach(s => {
+                    let row = `<td style="padding: 15px; min-width: 150px;"><b>${s.name}</b><br><small style="color: #8898aa;">${s.reg_no}</small></td>`;
+
+                    sortedSubjects.forEach(sub => {
+                        const m = s.marks[sub];
+                        if (m) {
+                            const isPass = m.marks_scored >= m.pass_mark;
+                            row += `<td style="padding: 15px; text-align: center;"><b>${m.marks_scored}</b> / ${m.total_marks}</td>`;
+                            row += `<td style="padding: 15px; text-align: center;">
+                                <span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 10px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span>
+                            </td>`;
+                        } else {
+                            row += `<td style="padding: 15px; text-align: center; color: #adb5bd;">-</td><td style="padding: 15px; text-align: center; color: #adb5bd;">-</td>`;
+                        }
+                    });
+
+                    const overallPercent = ((s.totalScored / s.totalPotential) * 100).toFixed(1);
+                    row += `<td style="padding: 15px; text-align: center;"><b>${s.totalScored}</b> / ${s.totalPotential}</td>`;
+                    row += `<td style="padding: 15px; text-align: center;"><span style="font-weight: 800; color: #5e72e4;">${overallPercent}%</span></td>`;
+
+                    // Action cell with subject-specific buttons
+                    let actionHtml = `<td style="padding: 15px; text-align: center; min-width: 120px;">`;
+                    Object.values(s.marks).forEach(m => {
+                        actionHtml += `
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 4px; border-bottom: 1px dashed #eee; padding-bottom: 2px;">
+                                <small style="max-width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${m.subject_name}">${m.subject_name}</small>
+                                <button onclick="editMark(${m.id}, ${m.marks_scored})" style="background: none; border: none; color: #5e72e4; cursor: pointer; font-size: 14px;" title="Edit ${m.subject_name}">✏️</button>
+                                <button onclick="deleteMark(${classId}, '${m.subject_name}', ${exam}, '${s.reg_no}')" style="background: none; border: none; color: #f5365c; cursor: pointer; font-size: 14px;" title="Delete ${m.subject_name}">🗑️</button>
+                            </div>
+                        `;
+                    });
+                    actionHtml += `</td>`;
+                    row += actionHtml;
+
+                    tbody.innerHTML += `<tr style="border-bottom: 1px solid #f2f4f6;">${row}</tr>`;
                 });
             } else {
                 table.style.display = 'none';
