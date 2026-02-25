@@ -426,9 +426,7 @@ def submit_attendance():
 @login_required
 def get_subjects(class_num, section):
     """Get all subjects for a class"""
-    if not is_teacher_or_admin():
-        abort(403)
-    
+    # Removed is_teacher_or_admin restriction to allow students to view subject lists
     conn = get_db()
     class_rec = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
                             (f'Class {class_num}', section)).fetchone()
@@ -704,9 +702,7 @@ def upload_students():
 @app.route('/get_attendance_history/<int:class_id>')
 @login_required
 def get_attendance_history(class_id):
-    if not is_teacher_or_admin():
-        abort(403)
-    
+    # Removed is_teacher_or_admin restriction to allow students to view their history
     subject_id = request.args.get('subject_id', None)
     
     conn = get_db()
@@ -755,8 +751,7 @@ def get_attendance_history(class_id):
 @app.route('/history')
 @login_required
 def history():
-    if not is_teacher_or_admin():
-        abort(403)
+    # Removed is_teacher_or_admin restriction to allow students to access the page
     conn = get_db()
     classes = conn.execute('SELECT * FROM classes ORDER BY class_name').fetchall()
     conn.close()
