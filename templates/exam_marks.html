@@ -272,18 +272,22 @@
     };
 
     function showSection(section) {
-        document.getElementById('sectionUpload').style.display = section === 'upload' ? 'block' : 'none';
-        document.getElementById('sectionView').style.display = section === 'view' ? 'block' : 'none';
+        const uploadSect = document.getElementById('sectionUpload');
+        const viewSect = document.getElementById('sectionView');
+        if (uploadSect) uploadSect.style.display = section === 'upload' ? 'block' : 'none';
+        if (viewSect) viewSect.style.display = section === 'view' ? 'block' : 'none';
 
         const btnUpload = document.getElementById('btnUpload');
         const btnView = document.getElementById('btnView');
 
-        if (section === 'upload') {
-            btnUpload.style.background = '#5e72e4'; btnUpload.style.color = 'white';
-            btnView.style.background = 'white'; btnView.style.color = '#5e72e4'; btnView.style.border = '2px solid #5e72e4';
-        } else {
-            btnView.style.background = '#5e72e4'; btnView.style.color = 'white';
-            btnUpload.style.background = 'white'; btnUpload.style.color = '#5e72e4'; btnUpload.style.border = '2px solid #5e72e4';
+        if (btnUpload && btnView) {
+            if (section === 'upload') {
+                btnUpload.style.background = '#5e72e4'; btnUpload.style.color = 'white';
+                btnView.style.background = 'white'; btnView.style.color = '#5e72e4'; btnView.style.border = '2px solid #5e72e4';
+            } else {
+                btnView.style.background = '#5e72e4'; btnView.style.color = 'white';
+                btnUpload.style.background = 'white'; btnUpload.style.color = '#5e72e4'; btnUpload.style.border = '2px solid #5e72e4';
+            }
         }
     }
 
@@ -305,8 +309,11 @@
             btn.style.opacity = '0.7';
 
             const key = classNum.trim().toUpperCase() + '-' + section.trim().toUpperCase();
-            console.log('Lookup Key:', key, 'Available Keys:', Object.keys(classesMap));
+            console.log('Lookup Key:', key);
+            console.log('Available ClassesMap Keys:', Object.keys(classesMap));
+
             const classId = classesMap[key];
+            console.log('Found ClassID:', classId);
 
             if (!classId) {
                 alert(`Error: Class "${key}" not found in system map.\nGenerated Key: "${key}"\nAvailable: ${Object.keys(classesMap).join(', ')}\n\nPlease ensure Class and Section are correctly selected.`);
