@@ -23,6 +23,7 @@
             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(94, 114, 228, 0.4)'">
             📊 Mark Attendance
         </a>
+        {% endif %}
 
         <a href="{{ url_for('history') }}" style="
             display: inline-block;
@@ -41,7 +42,6 @@
             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(17, 205, 239, 0.4)'">
             📜 Attendance History
         </a>
-        {% endif %}
 
         <a href="{{ url_for('education') }}" style="
             display: inline-block;
