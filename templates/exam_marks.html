@@ -126,7 +126,32 @@
     <!-- View Marks Section -->
     <div id="sectionView"
         style="display: none; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); border-left: 5px solid #11cdef;">
-        <h2 style="margin-top: 0; margin-bottom: 25px; font-size: 20px; color: #32325d;">View Performance History</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; font-size: 20px; color: #32325d;">View Performance History</h2>
+            {% if session.role == 'admin' %}
+            <button type="button" onclick="toggleManageExams()"
+                style="background: #11cdef; color: white; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 13px; font-weight: bold;">Manage
+                Exams</button>
+            {% endif %}
+        </div>
+
+        <div id="manageExamsPanel"
+            style="display: none; margin-bottom: 25px; background: #f8f9fe; padding: 20px; border-radius: 8px; border: 1px solid #e3e3e3;">
+            <h3 style="margin-top: 0; font-size: 16px; color: #32325d;">Existing Exams</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                {% for exam in exams %}
+                <div
+                    style="background: white; border: 1px solid #11cdef; color: #11cdef; padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                    {{ exam.exam_name }}
+                    <form action="{{ url_for('delete_exam', exam_id=exam.id) }}" method="POST" style="margin: 0;"
+                        onsubmit="return confirm('Deleting this exam will delete all marks for all students in this exam. Are you sure?')">
+                        <button type="submit"
+                            style="background: none; border: none; color: #f5365c; cursor: pointer; padding: 0; font-weight: bold; font-size: 16px;">✕</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
         <div
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; align-items: end;">
             <div class="form-group">
@@ -235,9 +260,14 @@
 </div>
 
 <script>
+    const role = '{{ session.role }}';
+    function toggleManageExams() {
+        const panel = document.getElementById('manageExamsPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
     const classesMap = {
         {% for cls in classes %}
-    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": {{ cls.id }},
+    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": { { cls.id } },
     {% endfor %}
     };
 
@@ -340,6 +370,13 @@
             const table = document.getElementById('resultsTable');
             const tbody = document.getElementById('resultsTbody');
             table.style.display = 'block'; tbody.innerHTML = '';
+
+            // Add Action header if not present
+            const thead = table.querySelector('thead tr');
+            if (thead.cells.length < 6) {
+                thead.innerHTML += '<th style="padding: 15px; text-align: center; font-size: 12px; color: #8898aa;">Action</th>';
+            }
+
             data.results.forEach(r => {
                 const isPass = r.marks_scored >= r.pass_mark;
                 tbody.innerHTML += `
@@ -349,8 +386,57 @@
                         <td style="padding: 15px; text-align: center;"><b>${r.marks_scored}</b> / ${r.total_marks}</td>
                         <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
                         <td style="padding: 15px; text-align: center;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
+                        <td style="padding: 15px; text-align: center;">
+                            <button onclick="editMark(${r.id}, ${r.marks_scored})" style="background: none; border: none; color: #5e72e4; cursor: pointer; font-size: 16px; margin-right: 10px;" title="Edit Mark">✏️</button>
+                            <button onclick="deleteMark(${classId}, '${r.subject_name}', ${exam}, '${r.reg_no}')" style="background: none; border: none; color: #f5365c; cursor: pointer; font-size: 16px;" title="Delete Mark">🗑️</button>
+                        </td>
                     </tr>`;
             });
+        }
+    }
+
+    async function editMark(markId, currentScore) {
+        const newScore = prompt("Enter new marks scored:", currentScore);
+        if (newScore === null || newScore === "" || isNaN(newScore)) return;
+
+        try {
+            const resp = await fetch('/update_mark', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: markId, marks_scored: parseFloat(newScore) })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alert('Mark updated successfully');
+                fetchResults();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Failed to update mark');
+        }
+    }
+
+    async function deleteMark(classId, subjectName, examId, regNo) {
+        if (!confirm('Are you sure you want to delete this mark?')) return;
+
+        try {
+            const resp = await fetch('/delete_mark', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ class_id: classId, subject_name: subjectName, exam_id: examId, reg_no: regNo })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alert('Mark deleted successfully');
+                fetchResults(); // Refresh table
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Failed to delete mark');
         }
     }
 

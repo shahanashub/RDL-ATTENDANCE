@@ -726,7 +726,7 @@ def get_attendance_history(class_id):
             subj_params = (att_date, class_id, class_id)
             
         students_att = conn.execute(f'''
-            SELECT s.reg_no, s.name, a.present FROM students s
+            SELECT s.reg_no, s.name, a.present, a.id as att_id FROM students s
             LEFT JOIN attendance a ON s.reg_no = a.reg_no AND a.att_date = ? AND a.class_id = ? AND {subj_clause}
             WHERE s.class_id = ?
         ''', subj_params).fetchall()
@@ -783,7 +783,7 @@ def attendance_history(class_id):
             subj_params = (att_date, class_id, class_id)
             
         students_att = conn.execute(f'''
-            SELECT s.reg_no, s.name, a.present FROM students s
+            SELECT s.reg_no, s.name, a.present, a.id as att_id FROM students s
             LEFT JOIN attendance a ON s.reg_no = a.reg_no AND a.att_date = ? AND a.class_id = ? AND {subj_clause}
             WHERE s.class_id = ?
         ''', subj_params).fetchall()
@@ -993,6 +993,222 @@ def get_fees():
         
     conn.close()
     return jsonify({'success': True, 'results': [dict(r) for r in results]})
+
+@app.route('/delete_student/<int:student_id>', methods=['POST'])
+@login_required
+def delete_student(student_id):
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        conn = get_db()
+        # Find user_id if linked
+        student = conn.execute('SELECT user_id, reg_no FROM students WHERE id = ?', (student_id,)).fetchone()
+        if student:
+            # Delete attendance and marks first due to FK or logic
+            conn.execute('DELETE FROM attendance WHERE reg_no = ?', (student['reg_no'],))
+            conn.execute('DELETE FROM marks WHERE reg_no = ?', (student['reg_no'],))
+            conn.execute('DELETE FROM fees WHERE reg_no = ?', (student['reg_no'],))
+            
+            if student['user_id']:
+                conn.execute('DELETE FROM users WHERE id = ?', (student['user_id'],))
+            conn.execute('DELETE FROM students WHERE id = ?', (student_id,))
+            conn.commit()
+            flash('Student and related records deleted successfully', 'success')
+        conn.close()
+    except Exception as e:
+        flash(f'Error deleting student: {str(e)}', 'danger')
+    return redirect(url_for('attendance'))
+
+@app.route('/delete_attendance_day', methods=['POST'])
+@login_required
+def delete_attendance_day():
+    if not is_teacher_or_admin():
+        abort(403)
+    try:
+        class_id = request.form.get('class_id')
+        att_date = request.form.get('att_date')
+        subject_id = request.form.get('subject_id')
+        
+        conn = get_db()
+        if subject_id and subject_id != 'None' and subject_id != '':
+            conn.execute('DELETE FROM attendance WHERE class_id = ? AND att_date = ? AND subject_id = ?', 
+                        (class_id, att_date, subject_id))
+        else:
+            conn.execute('DELETE FROM attendance WHERE class_id = ? AND att_date = ? AND subject_id IS NULL', 
+                        (class_id, att_date))
+        conn.commit()
+        conn.close()
+        flash('Attendance record deleted', 'success')
+    except Exception as e:
+        flash(f'Error deleting attendance: {str(e)}', 'danger')
+    return redirect(url_for('history'))
+
+@app.route('/delete_mark', methods=['POST'])
+@login_required
+def delete_mark():
+    if not is_teacher_or_admin():
+        abort(403)
+    try:
+        data = request.get_json()
+        class_id = data.get('class_id')
+        subject_name = data.get('subject_name')
+        exam_id = data.get('exam_id')
+        reg_no = data.get('reg_no')
+        
+        conn = get_db()
+        if reg_no:
+            # Delete specific student mark
+            query = '''
+                DELETE FROM marks 
+                WHERE class_id = ? AND exam_id = ? AND reg_no = ?
+                AND subject_id IN (SELECT id FROM subjects WHERE LOWER(subject_name) = LOWER(?))
+            '''
+            conn.execute(query, (class_id, exam_id, reg_no, subject_name))
+        else:
+            # Delete all marks for this class/subject/exam
+            query = '''
+                DELETE FROM marks 
+                WHERE class_id = ? AND exam_id = ?
+                AND subject_id IN (SELECT id FROM subjects WHERE LOWER(subject_name) = LOWER(?))
+            '''
+            conn.execute(query, (class_id, exam_id, subject_name))
+            
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Marks deleted successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/delete_fee/<int:fee_id>', methods=['POST'])
+@login_required
+def delete_fee(fee_id):
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        conn = get_db()
+        conn.execute('DELETE FROM fees WHERE id = ?', (fee_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Fee record deleted'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/delete_subject/<int:subject_id>', methods=['POST'])
+@login_required
+def delete_subject(subject_id):
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        conn = get_db()
+        conn.execute('DELETE FROM marks WHERE subject_id = ?', (subject_id,))
+        conn.execute('DELETE FROM attendance WHERE subject_id = ?', (subject_id,))
+        conn.execute('DELETE FROM subjects WHERE id = ?', (subject_id,))
+        conn.commit()
+        conn.close()
+        flash('Subject deleted successfully', 'success')
+    except Exception as e:
+        flash(f'Error deleting subject: {str(e)}', 'danger')
+    return redirect(url_for('attendance'))
+
+@app.route('/delete_exam/<int:exam_id>', methods=['POST'])
+@login_required
+def delete_exam(exam_id):
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        conn = get_db()
+        conn.execute('DELETE FROM marks WHERE exam_id = ?', (exam_id,))
+        conn.execute('DELETE FROM exams WHERE id = ?', (exam_id,))
+        conn.commit()
+        conn.close()
+        flash('Exam and related marks deleted', 'success')
+    except Exception as e:
+        flash(f'Error deleting exam: {str(e)}', 'danger')
+    return redirect(url_for('exam_marks'))
+
+@app.route('/delete_class/<int:class_id>', methods=['POST'])
+@login_required
+def delete_class(class_id):
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        conn = get_db()
+        # Find students in this class
+        students = conn.execute('SELECT reg_no FROM students WHERE class_id = ?', (class_id,)).fetchall()
+        for s in students:
+            conn.execute('DELETE FROM attendance WHERE reg_no = ?', (s['reg_no'],))
+            conn.execute('DELETE FROM marks WHERE reg_no = ?', (s['reg_no'],))
+            conn.execute('DELETE FROM fees WHERE reg_no = ?', (s['reg_no'],))
+        
+        conn.execute('DELETE FROM students WHERE class_id = ?', (class_id,))
+        conn.execute('DELETE FROM subjects WHERE class_id = ?', (class_id,))
+        conn.execute('DELETE FROM classes WHERE id = ?', (class_id,))
+        conn.commit()
+        conn.close()
+        flash('Class and all related records deleted', 'success')
+    except Exception as e:
+        flash(f'Error deleting class: {str(e)}', 'danger')
+    return redirect(url_for('attendance'))
+
+@app.route('/update_mark', methods=['POST'])
+@login_required
+def update_mark():
+    if not is_teacher_or_admin():
+        abort(403)
+    try:
+        data = request.get_json()
+        mark_id = data.get('id')
+        new_marks = data.get('marks_scored')
+        
+        conn = get_db()
+        conn.execute('UPDATE marks SET marks_scored = ? WHERE id = ?', (new_marks, mark_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Mark updated'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/update_attendance_status', methods=['POST'])
+@login_required
+def update_attendance_status():
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        data = request.get_json()
+        att_id = data.get('id')
+        new_status = data.get('present') # Boolean
+        
+        conn = get_db()
+        conn.execute('UPDATE attendance SET present = ? WHERE id = ?', (new_status, att_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Attendance updated'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/update_fee_record', methods=['POST'])
+@login_required
+def update_fee_record():
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        data = request.get_json()
+        fee_id = data.get('id')
+        month = data.get('month')
+        payment_mode = data.get('payment_mode')
+        balance = data.get('balance_amount')
+        
+        conn = get_db()
+        conn.execute('''
+            UPDATE fees 
+            SET month = ?, payment_mode = ?, balance_amount = ? 
+            WHERE id = ?
+        ''', (month, payment_mode, balance, fee_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'message': 'Fee record updated'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
 
 # Initialize database on startup
 init_db()

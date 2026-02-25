@@ -1,4 +1,3 @@
-
 <style>
     .history-container {
         background: white;
@@ -415,109 +414,120 @@
 </div>
 
 <script>
-// Build a map of available classes
-const classesMap = {
+    const role = '{{ session.role }}';
+    // Build a map of available classes
+    const classesMap = {
     {% for cls in classes %}
-    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': {{ cls.id }},
+    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': { { cls.id } },
     {% endfor %}
 };
 
-async function loadAttendanceHistory() {
-    const classNum = document.getElementById('class_num').value;
-    const section = document.getElementById('section').value;
-    const subjectId = document.getElementById('subject_id').value;
-    
-    if (!classNum || !section) {
-        alert('Please select both Class and Section');
-        return;
-    }
+    async function loadAttendanceHistory() {
+        const classNum = document.getElementById('class_num').value;
+        const section = document.getElementById('section').value;
+        const subjectId = document.getElementById('subject_id').value;
 
-    // Find the class_id from the map
-    const key = classNum + '-' + section;
-    const classId = classesMap[key];
-    
-    if (!classId) {
-        alert('This Class - Section combination does not exist');
-        return;
-    }
-
-    const viewBtn = document.getElementById('viewBtn');
-    viewBtn.disabled = true;
-    viewBtn.textContent = '⏳ Loading...';
-
-    try {
-        let url = `/get_attendance_history/${classId}`;
-        if (subjectId) {
-            url += `?subject_id=${subjectId}`;
+        if (!classNum || !section) {
+            alert('Please select both Class and Section');
+            return;
         }
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.success) {
-            displayAttendanceHistory(data.records);
-        } else {
+
+        // Find the class_id from the map
+        const key = classNum + '-' + section;
+        const classId = classesMap[key];
+
+        if (!classId) {
+            alert('This Class - Section combination does not exist');
+            return;
+        }
+
+        const viewBtn = document.getElementById('viewBtn');
+        viewBtn.disabled = true;
+        viewBtn.textContent = '⏳ Loading...';
+
+        try {
+            let url = `/get_attendance_history/${classId}`;
+            if (subjectId) {
+                url += `?subject_id=${subjectId}`;
+            }
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success) {
+                displayAttendanceHistory(data.records);
+            } else {
+                alert('Error loading attendance history');
+            }
+        } catch (error) {
+            console.error('Error:', error);
             alert('Error loading attendance history');
+        } finally {
+            viewBtn.disabled = false;
+            viewBtn.textContent = '📋 View History';
         }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error loading attendance history');
-    } finally {
-        viewBtn.disabled = false;
-        viewBtn.textContent = '📋 View History';
     }
-}
 
-async function loadSubjectsList() {
-    const classNum = document.getElementById('class_num').value;
-    const section = document.getElementById('section').value;
-    const subjectSelect = document.getElementById('subject_id');
-    
-    if (!classNum || !section) {
-        subjectSelect.innerHTML = '<option value="">-- Select Subject (All if empty) --</option>';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/get_subjects/${classNum}-${section}`);
-        const data = await response.json();
-        
-        let html = '<option value="">-- Select Subject (All if empty) --</option>';
-        data.forEach(subject => {
-            html += `<option value="${subject.id}">${subject.subject_name}</option>`;
-        });
-        subjectSelect.innerHTML = html;
-    } catch (error) {
-        console.log('Could not load subjects:', error);
-        subjectSelect.innerHTML = '<option value="">-- Select Subject (All if empty) --</option>';
-    }
-}
+    async function loadSubjectsList() {
+        const classNum = document.getElementById('class_num').value;
+        const section = document.getElementById('section').value;
+        const subjectSelect = document.getElementById('subject_id');
 
-function displayAttendanceHistory(records) {
-    const contentArea = document.getElementById('contentArea');
-    
-    if (records.length === 0) {
-        contentArea.innerHTML = `
+        if (!classNum || !section) {
+            subjectSelect.innerHTML = '<option value="">-- Select Subject (All if empty) --</option>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/get_subjects/${classNum}-${section}`);
+            const data = await response.json();
+
+            let html = '<option value="">-- Select Subject (All if empty) --</option>';
+            data.forEach(subject => {
+                html += `<option value="${subject.id}">${subject.subject_name}</option>`;
+            });
+            subjectSelect.innerHTML = html;
+        } catch (error) {
+            console.log('Could not load subjects:', error);
+            subjectSelect.innerHTML = '<option value="">-- Select Subject (All if empty) --</option>';
+        }
+    }
+
+    function displayAttendanceHistory(records) {
+        const contentArea = document.getElementById('contentArea');
+
+        if (records.length === 0) {
+            contentArea.innerHTML = `
             <div class="empty-state show">
                 <div class="empty-state-icon">📋</div>
                 <h2 class="empty-state-title">No Attendance Records Found</h2>
                 <p class="empty-state-text">There are no attendance records available for this class yet</p>
             </div>
         `;
-        return;
-    }
+            return;
+        }
 
-    let html = '<div class="records-container">';
-    records.forEach(record => {
-        const presentCount = record.students.filter(s => s.present).length;
-        const absentCount = record.students.filter(s => !s.present).length;
-        const total = record.students.length;
-        const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
+        let html = '<div class="records-container">';
+        records.forEach(record => {
+            const presentCount = record.students.filter(s => s.present).length;
+            const absentCount = record.students.filter(s => !s.present).length;
+            const total = record.students.length;
+            const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
 
-        html += `
+            html += `
             <div class="record-card">
                 <div class="record-header">
                     <h2 class="record-date">📅 ${record.date}</h2>
-                    <span class="record-class">${record.class_name} - ${record.section}</span>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <span class="record-class">${record.class_name} - ${record.section}</span>
+                        ${(role === 'admin' || role === 'teacher') ? `
+                        <form action="/delete_attendance_day" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this attendance record?')">
+                            <input type="hidden" name="class_id" value="${classId}">
+                            <input type="hidden" name="att_date" value="${record.date}">
+                            <input type="hidden" name="subject_id" value="${subjectId || ''}">
+                            <button type="submit" style="background: white; border: none; color: #f5365c; cursor: pointer; border-radius: 4px; padding: 4px 8px; font-weight: bold; font-size: 14px;" title="Delete Day Record">🗑️ Delete</button>
+                        </form>
+                        ` : ''}
+                    </div>
                 </div>
                 
                 <div style="overflow-x: auto;">
@@ -535,9 +545,14 @@ function displayAttendanceHistory(records) {
                                     <td>${student.reg_no}</td>
                                     <td>${student.name}</td>
                                     <td>
-                                        <span class="status-badge ${student.present ? 'present' : 'absent'}">
-                                            ${student.present ? '✓ Present' : '✗ Absent'}
-                                        </span>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <span class="status-badge ${student.present ? 'present' : 'absent'}">
+                                                ${student.present ? '✓ Present' : '✗ Absent'}
+                                            </span>
+                                            ${role === 'admin' ? `
+                                            <button onclick="updateStatus(${student.att_id}, ${!student.present})" style="background: none; border: 1px solid #ced4da; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 11px;">🔄 Change</button>
+                                            ` : ''}
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -563,18 +578,37 @@ function displayAttendanceHistory(records) {
                 </div>
             </div>
         `;
-    });
-    html += '</div>';
-    
-    contentArea.innerHTML = html;
-}
+        });
+        html += '</div>';
 
-// Allow Enter key to load history
-document.getElementById('class_select').addEventListener('keyup', function(e) {
-    if (e.key === 'Enter') {
-        loadAttendanceHistory();
+        contentArea.innerHTML = html;
     }
-});
+
+    // Allow Enter key to load history
+    document.getElementById('class_select').addEventListener('keyup', function (e) {
+        if (e.key === 'Enter') {
+            loadAttendanceHistory();
+        }
+    });
+    async function updateStatus(attId, newStatus) {
+        try {
+            const resp = await fetch('/update_attendance_status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: attId, present: newStatus })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alert('Attendance updated successfully');
+                loadAttendanceHistory();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Failed to update attendance');
+        }
+    }
 </script>
 
 
