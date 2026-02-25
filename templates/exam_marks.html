@@ -232,8 +232,8 @@
                     {% for exam in exams %}<option value="{{ exam.id }}">{{ exam.exam_name }}</option>{% endfor %}
                 </select>
             </div>
-            <button onclick="fetchStudentResults()"
-                style="padding: 14px 24px; background: #fb6340; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">📊
+            <button id="btnViewReport" onclick="fetchStudentResults()"
+                style="padding: 14px 24px; background: #fb6340; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;">📊
                 View Report</button>
         </div>
 
@@ -510,26 +510,47 @@
     }
 
     async function fetchStudentResults() {
-        const reg = document.getElementById('studentRegNo').value;
-        const exam = document.getElementById('studentExam').value;
-        if (!reg || !exam) return alert('Enter Reg No and Exam');
-        const resp = await fetch(`/get_exam_results?exam_id=${exam}&reg_no=${reg}`);
-        const data = await resp.json();
-        if (data.success && data.results.length > 0) {
-            document.getElementById('studentResultsArea').style.display = 'block';
-            document.getElementById('studentHeader').innerText = `Report: ${data.results[0].student_name}`;
-            const tbody = document.getElementById('studentResultsTbody'); tbody.innerHTML = '';
-            data.results.forEach(r => {
-                const isPass = r.marks_scored >= r.pass_mark;
-                tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 15px; font-weight: 700;">${r.subject_name}</td>
-                        <td style="padding: 15px; text-align: center; color: #5e72e4; font-weight: 800;">${r.marks_scored}</td>
-                        <td style="padding: 15px; text-align: center; color: #8898aa;">${r.total_marks}</td>
-                        <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
-                        <td style="padding: 15px; text-align: center; font-weight: 700;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
-                    </tr>`;
-            });
-        } else alert('No records found.');
+        const btn = document.getElementById('btnViewReport');
+        const originalText = btn.innerHTML;
+        try {
+            const reg = document.getElementById('studentRegNo').value.trim();
+            const exam = document.getElementById('studentExam').value;
+            if (!reg || !exam) return alert('Please enter Registration Number and select an Exam');
+
+            btn.innerHTML = '⏳ Loading...';
+            btn.disabled = true;
+
+            const resp = await fetch(`/get_exam_results?exam_id=${exam}&reg_no=${encodeURIComponent(reg)}`);
+            const data = await resp.json();
+
+            const resultsArea = document.getElementById('studentResultsArea');
+            const tbody = document.getElementById('studentResultsTbody');
+
+            if (data.success && data.results && data.results.length > 0) {
+                resultsArea.style.display = 'block';
+                document.getElementById('studentHeader').innerText = `Performance Report: ${data.results[0].student_name}`;
+                tbody.innerHTML = '';
+                data.results.forEach(r => {
+                    const isPass = r.marks_scored >= r.pass_mark;
+                    tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 15px; font-weight: 700;">${r.subject_name}</td>
+                            <td style="padding: 15px; text-align: center; color: #5e72e4; font-weight: 800;">${r.marks_scored}</td>
+                            <td style="padding: 15px; text-align: center; color: #8898aa;">${r.total_marks}</td>
+                            <td style="padding: 15px; text-align: center;"><span style="padding: 4px 10px; border-radius: 20px; background: ${isPass ? '#e8f9ee' : '#fff1f4'}; color: ${isPass ? '#2dce89' : '#f5365c'}; font-size: 11px; font-weight: 700;">${isPass ? 'PASS' : 'FAIL'}</span></td>
+                            <td style="padding: 15px; text-align: center; font-weight: 700;">${((r.marks_scored / r.total_marks) * 100).toFixed(1)}%</td>
+                        </tr>`;
+                });
+            } else {
+                resultsArea.style.display = 'none';
+                alert(data.message || 'No records found for this Registration Number and Exam.');
+            }
+        } catch (error) {
+            console.error('Student fetch error:', error);
+            alert('Failed to fetch report: ' + error.message);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     }
 </script>
