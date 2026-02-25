@@ -234,8 +234,10 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = hashlib.sha256(request.form['password'].encode()).hexdigest()
+        role = request.form.get('role')
         conn = get_db()
-        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password)).fetchone()
+        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ? AND role = ?', 
+                           (username, password, role)).fetchone()
         conn.close()
         if user:
             session['user_id'] = user['id']
@@ -243,7 +245,7 @@ def login():
             session['role'] = user['role']
             session.modified = True
             return redirect(url_for('dashboard'))
-        flash('Invalid credentials')
+        flash(f'Invalid credentials or incorrect role selected for {username}')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
