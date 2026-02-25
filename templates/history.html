@@ -418,7 +418,7 @@
     // Build a map of available classes
     const classesMap = {
     {% for cls in classes %}
-    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': { { cls.id } },
+    '{{ cls.class_name.replace("Class ", "") }}-{{ cls.section }}': {{ cls.id }},
     {% endfor %}
 };
 

@@ -231,7 +231,7 @@
     const role = '{{ session.role }}';
     const classesMap = {
         {% for cls in classes %}
-    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": { { cls.id } },
+    "{{ cls.class_name.upper().replace('CLASS', '').strip() }}-{{ cls.section.upper().strip() }}": {{ cls.id }},
     {% endfor %}
     };
 

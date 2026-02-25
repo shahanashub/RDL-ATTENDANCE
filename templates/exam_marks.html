@@ -293,8 +293,13 @@
         if (!classNum || !section) return;
 
         const key = classNum.trim().toUpperCase() + '-' + section.trim().toUpperCase();
+        console.log('Lookup Key:', key, 'Available Keys:', Object.keys(classesMap));
         const classId = classesMap[key];
-        if (!classId) return console.warn('Class not found in map for:', key);
+
+        if (!classId) {
+            alert(`Error: Class "${key}" not found in system map. Available: ${Object.keys(classesMap).join(', ')}`);
+            return;
+        }
 
         document.getElementById('uploadClassId').value = classId;
 
@@ -363,13 +368,21 @@
 
         const key = num.trim().toUpperCase() + '-' + sec.trim().toUpperCase();
         const classId = classesMap[key];
+
+        if (!classId) {
+            alert(`Error: Class "${key}" not found.`);
+            return;
+        }
+
         const resp = await fetch(`/get_exam_results?class_id=${classId}&exam_id=${exam}`);
         const data = await resp.json();
 
+        const table = document.getElementById('resultsTable');
+        const tbody = document.getElementById('resultsTbody');
+        tbody.innerHTML = ''; // Clear results
+
         if (data.success) {
-            const table = document.getElementById('resultsTable');
-            const tbody = document.getElementById('resultsTbody');
-            table.style.display = 'block'; tbody.innerHTML = '';
+            table.style.display = 'block';
 
             // Add Action header if not present
             const thead = table.querySelector('thead tr');

@@ -919,12 +919,17 @@ def get_exam_results():
         results = conn.execute(query, (exam_id, reg_no)).fetchall()
     else:
         # Admins/Teachers view all marks for a class and exam
-        if not class_id:
+        try:
+            if not class_id or class_id == 'undefined':
+                conn.close()
+                return jsonify({'success': False, 'message': 'Class selection is invalid'})
+            class_id = int(class_id)
+        except (ValueError, TypeError):
             conn.close()
-            return jsonify({'success': False, 'message': 'Class ID is required for non-students'})
+            return jsonify({'success': False, 'message': 'Invalid Class ID'})
             
         query = '''
-            SELECT std.name as student_name, std.reg_no, s.subject_name, m.marks_scored, m.total_marks, m.pass_mark
+            SELECT std.name as student_name, std.reg_no, s.subject_name, m.marks_scored, m.total_marks, m.pass_mark, m.id
             FROM marks m
             JOIN subjects s ON m.subject_id = s.id
             JOIN students std ON m.reg_no = std.reg_no
