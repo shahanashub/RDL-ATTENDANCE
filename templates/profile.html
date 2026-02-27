@@ -188,10 +188,105 @@
     {% endif %}
 
     {% if session.role == 'admin' %}
+    <!-- Reference Model Styled Manual Entry -->
+    <div
+        style="background: #7c7ca4; padding: 20px; border-radius: 20px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+        <div style="background-color: #2f2f5f; border: 6px solid #d4c474; border-radius: 15px; padding: 30px;">
+            <h3
+                style="color: white; margin-top: 0; margin-bottom: 25px; text-align: center; letter-spacing: 1px; font-size: 20px;">
+                👤 MANUAL USER ENTRY</h3>
+
+            <form action="{{ url_for('admin_create_user') }}" method="POST">
+                <style>
+                    .ref-form-group {
+                        display: flex;
+                        align-items: center;
+                        margin-bottom: 15px;
+                        gap: 15px;
+                    }
+
+                    .ref-label {
+                        flex: 0 0 110px;
+                        color: #bd9b53;
+                        font-weight: 800;
+                        font-size: 14px;
+                        text-align: right;
+                    }
+
+                    .ref-input {
+                        flex: 1;
+                        padding: 10px 18px;
+                        border-radius: 50px;
+                        border: none;
+                        outline: none;
+                        font-size: 13px;
+                        background: white;
+                    }
+
+                    .ref-btn {
+                        width: 100%;
+                        padding: 12px;
+                        border-radius: 50px;
+                        border: none;
+                        background: #bd9b53;
+                        color: #2f2f5f;
+                        font-weight: 800;
+                        font-size: 14px;
+                        cursor: pointer;
+                        margin-top: 15px;
+                        transition: transform 0.2s;
+                    }
+
+                    .ref-btn:hover {
+                        transform: scale(1.02);
+                        background: #d4c474;
+                    }
+                </style>
+
+                <div class="ref-form-group">
+                    <label class="ref-label">Username</label>
+                    <input type="text" name="username" class="ref-input" placeholder="xxxxxxxxxx" required>
+                </div>
+
+                <div class="ref-form-group">
+                    <label class="ref-label">Password</label>
+                    <input type="password" name="password" class="ref-input" placeholder="xxxxxxxxxx" required>
+                </div>
+
+                <div class="ref-form-group">
+                    <label class="ref-label">Register.No</label>
+                    <input type="text" name="register_no" class="ref-input" placeholder="xxxxxxxxxx" required>
+                </div>
+
+                <div class="ref-form-group">
+                    <label class="ref-label">Phone.No</label>
+                    <input type="text" name="phone" class="ref-input" placeholder="xxxxxxxxxx">
+                </div>
+
+                <div class="ref-form-group">
+                    <label class="ref-label">Role</label>
+                    <select name="role" class="ref-input" style="cursor: pointer;"
+                        onchange="document.getElementById('ref-class-group').style.display = this.value === 'student' ? 'flex' : 'none'">
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="ref-form-group" id="ref-class-group">
+                    <label class="ref-label">Class</label>
+                    <input type="text" name="class" class="ref-input" placeholder="e.g. 10-A">
+                </div>
+
+                <button type="submit" class="ref-btn">SUBMIT USER</button>
+            </form>
+        </div>
+    </div>
+
     <div style="background: #f8f9fe; padding: 40px; border-radius: 20px; border: 2px dashed #d1d9e6;">
         <h2 style="margin-top: 0; margin-bottom: 10px; color: #32325d; font-size: 20px;">📤 Bulk Upload Profiles</h2>
-        <p style="color: #636b7d; font-size: 14px; margin-bottom: 25px;">Upload students, teachers, or admin profile
-            data via JSON format.</p>
+        <p style="color: #636b7d; font-size: 14px; margin-bottom: 25px;">Alternative: Enter profile details in bulk
+            using the standard format.</p>
 
         <form action="{{ url_for('upload_profiles') }}" method="POST">
             <div style="margin-bottom: 20px;">

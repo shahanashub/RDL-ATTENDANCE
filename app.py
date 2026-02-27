@@ -427,6 +427,83 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+@app.route('/admin/create_user', methods=['POST'])
+@login_required
+def admin_create_user():
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        username = request.form['username'].strip()
+        password_input = request.form['password'].strip()
+        role = request.form['role'].strip()
+        register_no = request.form.get('register_no', '').strip()
+        phone = request.form.get('phone', '').strip()
+        user_class = request.form.get('class', '').strip()
+        
+        if not username or not password_input:
+            flash('Username and password are required', 'danger')
+            return redirect(url_for('profile'))
+        
+        password = hashlib.sha256(password_input.encode()).hexdigest()
+        conn = get_db()
+        
+        # Insert user
+        conn.execute('INSERT INTO users (username, password, role, phone) VALUES (?, ?, ?, ?)', 
+                    (username, password, role, phone))
+        conn.commit()
+        
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        
+        # Link profile
+        if role == 'student' and register_no:
+            class_parts = user_class.split('-') if '-' in user_class else user_class.split()
+            class_name = class_parts[0].strip() if class_parts else ''
+            section = class_parts[1].strip() if len(class_parts) > 1 else 'A'
+            class_id = None
+            if class_name:
+                class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
+                                        (f'Class {class_name}', section)).fetchone()
+                if not class_row:
+                    conn.execute('INSERT INTO classes (class_name, section) VALUES (?, ?)', 
+                               (f'Class {class_name}', section))
+                    conn.commit()
+                    class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
+                                           (f'Class {class_name}', section)).fetchone()
+                class_id = class_row['id'] if class_row else None
+
+            existing = conn.execute('SELECT id FROM students WHERE reg_no = ?', (register_no,)).fetchone()
+            if existing:
+                conn.execute('UPDATE students SET user_id = ?, name = ?, class_id = ?, phone = ? WHERE reg_no = ?',
+                           (user['id'], username, class_id, phone, register_no))
+            else:
+                conn.execute('INSERT INTO students (reg_no, name, class_id, user_id, phone) VALUES (?, ?, ?, ?, ?)',
+                           (register_no, username, class_id, user['id'], phone))
+        
+        elif role == 'teacher' and register_no:
+            existing = conn.execute('SELECT id FROM teacher_profiles WHERE register_id = ?', (register_no,)).fetchone()
+            if existing:
+                conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
+                           (user['id'], username, phone, register_no))
+            else:
+                conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
+                           (user['id'], username, register_no, phone))
+        
+        elif role == 'admin' and register_no:
+            existing = conn.execute('SELECT id FROM admin_profiles WHERE register_id = ?', (register_no,)).fetchone()
+            if existing:
+                conn.execute('UPDATE admin_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
+                           (user['id'], username, phone, register_no))
+            else:
+                conn.execute('INSERT INTO admin_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
+                           (user['id'], username, register_no, phone))
+        
+        conn.commit()
+        conn.close()
+        flash(f'User {username} created successfully', 'success')
+    except Exception as e:
+        flash(f'Creation Error: {str(e)}', 'danger')
+    return redirect(url_for('profile'))
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
