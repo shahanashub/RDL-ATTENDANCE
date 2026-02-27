@@ -465,7 +465,6 @@ def admin_create_user():
         
         user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
         
-        # Link profile
         if role == 'student' and register_no:
             # Handle class/section linking
             class_id = None
@@ -500,22 +499,38 @@ def admin_create_user():
                       mother_name, mother_phone, father_name, father_phone, address, blood_group))
         
         elif role == 'teacher' and register_no:
+            main_subject = request.form.get('main_subject', '').strip()
+            class_advisor = request.form.get('class_advisor', '').strip()
+            
             existing = conn.execute('SELECT id FROM teacher_profiles WHERE register_id = ?', (register_no,)).fetchone()
             if existing:
-                conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
-                           (user['id'], full_name, phone, register_no))
+                conn.execute('''
+                    UPDATE teacher_profiles SET user_id = ?, name = ?, phone = ?,
+                    main_subject = ?, class_advisor = ? WHERE register_id = ?
+                ''', (user['id'], full_name, phone, main_subject, class_advisor, register_no))
             else:
-                conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
-                           (user['id'], full_name, register_no, phone))
+                conn.execute('''
+                    INSERT INTO teacher_profiles (user_id, name, register_id, phone, main_subject, class_advisor)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (user['id'], full_name, register_no, phone, main_subject, class_advisor))
         
         elif role == 'admin' and register_no:
+            main_subject = request.form.get('main_subject', '').strip()
+            class_advisor = request.form.get('class_advisor', '').strip()
+            role_title = request.form.get('role_title', 'Administrative Head').strip()
+            
             existing = conn.execute('SELECT id FROM admin_profiles WHERE register_id = ?', (register_no,)).fetchone()
             if existing:
-                conn.execute('UPDATE admin_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
-                           (user['id'], full_name, phone, register_no))
+                conn.execute('''
+                    UPDATE admin_profiles SET user_id = ?, name = ?, phone = ?,
+                    main_subject = ?, class_advisor = ?, role_title = ? 
+                    WHERE register_id = ?
+                ''', (user['id'], full_name, phone, main_subject, class_advisor, role_title, register_no))
             else:
-                conn.execute('INSERT INTO admin_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
-                           (user['id'], full_name, register_no, phone))
+                conn.execute('''
+                    INSERT INTO admin_profiles (user_id, name, register_id, phone, main_subject, class_advisor, role_title)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (user['id'], full_name, register_no, phone, main_subject, class_advisor, role_title))
         
         conn.commit()
         conn.close()

@@ -328,14 +328,31 @@
                     </div>
                 </div>
 
+                <!-- Expanded Staff (Teacher/Admin) Fields -->
+                <div id="manual-staff-extra" style="display: none;">
+                    <div class="ref-form-group">
+                        <label class="ref-label">Main Subject</label>
+                        <input type="text" name="main_subject" class="ref-input" placeholder="e.g. Mathematics">
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Class Advisor</label>
+                        <input type="text" name="class_advisor" class="ref-input" placeholder="e.g. 10-A Agent">
+                    </div>
+                    <div class="ref-form-group" id="manual-admin-role-group" style="display: none;">
+                        <label class="ref-label">Official Role</label>
+                        <input type="text" name="role_title" class="ref-input" placeholder="e.g. HM, A.HM">
+                    </div>
+                </div>
+
                 <script>
                     function updateManualEntryFields(role) {
-                        const extraFields = document.getElementById('manual-student-extra');
-                        if (role === 'student') {
-                            extraFields.style.display = 'block';
-                        } else {
-                            extraFields.style.display = 'none';
-                        }
+                        const studentExtra = document.getElementById('manual-student-extra');
+                        const staffExtra = document.getElementById('manual-staff-extra');
+                        const adminRoleGroup = document.getElementById('manual-admin-role-group');
+
+                        studentExtra.style.display = (role === 'student') ? 'block' : 'none';
+                        staffExtra.style.display = (role === 'teacher' || role === 'admin') ? 'block' : 'none';
+                        adminRoleGroup.style.display = (role === 'admin') ? 'block' : 'none';
                     }
                     // Initialize
                     document.addEventListener('DOMContentLoaded', function () {
