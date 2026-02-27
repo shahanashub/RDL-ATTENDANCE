@@ -323,7 +323,8 @@ def register():
             password_input = request.form['password'].strip()
             role = request.form['role'].strip()
             register_no = request.form.get('register_no', '').strip()
-            user_class = request.form.get('class', '').strip()
+            class_num = request.form.get('class_num', '').strip()
+            section = request.form.get('section', '').strip()
             phone = request.form.get('phone', '').strip()
             
             if not username or not password_input:
@@ -344,21 +345,20 @@ def register():
             
             # Link existing profile or create new one
             if role == 'student' and register_no:
-                # Parse class format
-                class_parts = user_class.split('-') if '-' in user_class else user_class.split()
-                class_name = class_parts[0].strip() if class_parts else ''
-                section = class_parts[1].strip() if len(class_parts) > 1 else 'A'
+                class_num = request.form.get('class_num', '').strip()
+                section = request.form.get('section', 'A').strip()
                 
                 class_id = None
-                if class_name:
+                if class_num:
+                    class_name_formatted = f"Class {class_num}"
                     class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
-                                            (f'Class {class_name}', section)).fetchone()
+                                            (class_name_formatted, section)).fetchone()
                     if not class_row:
                         conn.execute('INSERT INTO classes (class_name, section) VALUES (?, ?)', 
-                                   (f'Class {class_name}', section))
+                                   (class_name_formatted, section))
                         conn.commit()
                         class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
-                                               (f'Class {class_name}', section)).fetchone()
+                                              (class_name_formatted, section)).fetchone()
                     class_id = class_row['id'] if class_row else None
 
                 # Check if student record with this reg_no already exists (uploaded by admin)
@@ -372,13 +372,17 @@ def register():
                 conn.commit()
             
             elif role == 'teacher' and register_no:
+                class_num = request.form.get('class_num', '').strip()
+                section = request.form.get('section', '').strip()
+                class_advisor = f"Class {class_num} - {section}" if class_num and section else ""
+                
                 existing_teacher = conn.execute('SELECT id FROM teacher_profiles WHERE register_id = ?', (register_no,)).fetchone()
                 if existing_teacher:
-                    conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
-                               (user['id'], username, phone, register_no))
+                    conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ?, phone = ?, class_advisor = ? WHERE register_id = ?',
+                               (user['id'], username, phone, class_advisor, register_no))
                 else:
-                    conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
-                               (user['id'], username, register_no, phone))
+                    conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id, phone, class_advisor) VALUES (?, ?, ?, ?, ?)',
+                               (user['id'], username, register_no, phone, class_advisor))
                 conn.commit()
                 
             elif role == 'admin' and register_no:

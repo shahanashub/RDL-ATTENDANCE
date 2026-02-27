@@ -174,9 +174,26 @@
                 </select>
             </div>
 
-            <div class="form-group" id="class-group">
-                <label>Class</label>
-                <input type="text" name="class" id="class-input" placeholder="e.g. 10-A">
+            <div class="form-group" id="class-group" style="display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                    <label>Class</label>
+                    <select name="class_num"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">-- Select --</option>
+                        {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label>Section</label>
+                    <select name="section"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">-- Select --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
             </div>
 
             <button type="submit" class="btn-submit">SUBMIT</button>

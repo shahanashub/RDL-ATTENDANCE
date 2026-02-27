@@ -285,11 +285,20 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div class="ref-form-group">
                             <label class="ref-label">Class</label>
-                            <input type="text" name="class" class="ref-input" placeholder="e.g. 10">
+                            <select name="class" class="ref-input" style="cursor: pointer;">
+                                <option value="">-- Grade --</option>
+                                {% for i in range(1, 11) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+                            </select>
                         </div>
                         <div class="ref-form-group">
                             <label class="ref-label" style="flex: 0 0 80px;">Section</label>
-                            <input type="text" name="section" class="ref-input" placeholder="e.g. A">
+                            <select name="section" class="ref-input" style="cursor: pointer;">
+                                <option value="">-- Sec --</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
                         </div>
                     </div>
                     <div class="ref-form-group">

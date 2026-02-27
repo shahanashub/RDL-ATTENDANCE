@@ -33,8 +33,9 @@
                 <select name="class_name"
                     style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
                     <option value="">-- Class --</option>
-                    {% for name in class_names %}
-                    <option value="{{ name }}" {% if selected_class_name==name %}selected{% endif %}>{{ name }}</option>
+                    {% for i in range(1, 11) %}
+                    <option value="Class {{ i }}" {% if selected_class_name=='Class ' ~ i %}selected{% endif %}>Class {{
+                        i }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -44,7 +45,7 @@
                 <select name="section"
                     style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
                     <option value="">-- Section --</option>
-                    {% for sec in sections %}
+                    {% for sec in ['A', 'B', 'C', 'D'] %}
                     <option value="{{ sec }}" {% if selected_section==sec %}selected{% endif %}>{{ sec }}</option>
                     {% endfor %}
                 </select>
@@ -76,9 +77,9 @@
                     <select name="class_name"
                         style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" required>
                         <option value="">-- Select Class --</option>
-                        {% for name in class_names %}
-                        <option value="{{ name }}" {% if selected_class_name==name %}selected{% endif %}>{{ name }}
-                        </option>
+                        {% for i in range(1, 11) %}
+                        <option value="Class {{ i }}" {% if selected_class_name=='Class ' ~ i %}selected{% endif %}>
+                            Class {{ i }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -89,7 +90,7 @@
                     <select name="section"
                         style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" required>
                         <option value="">-- Select Section --</option>
-                        {% for sec in sections %}
+                        {% for sec in ['A', 'B', 'C', 'D'] %}
                         <option value="{{ sec }}" {% if selected_section==sec %}selected{% endif %}>{{ sec }}</option>
                         {% endfor %}
                     </select>
