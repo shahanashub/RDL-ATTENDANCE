@@ -500,7 +500,19 @@ def admin_create_user():
         conn.commit()
         conn.close()
         flash(f'User {username} created successfully', 'success')
+    except IntegrityErrors as e:
+        if 'conn' in locals():
+            conn.close()
+        error_msg = str(e).lower()
+        if 'username' in error_msg:
+            flash(f'Error: Username "{username}" already exists.', 'danger')
+        elif 'reg_no' in error_msg or 'register_id' in error_msg:
+            flash(f'Error: Registration Number "{register_no}" already exists.', 'danger')
+        else:
+            flash(f'Database Error: {str(e)}', 'danger')
     except Exception as e:
+        if 'conn' in locals():
+            conn.close()
         flash(f'Creation Error: {str(e)}', 'danger')
     return redirect(url_for('profile'))
 
