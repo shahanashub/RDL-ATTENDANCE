@@ -22,69 +22,90 @@
         " onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f4f5f7'">🏠 Dashboard</a>
     </div>
 
+    {% if not profile %}
+    <div
+        style="text-align: center; padding: 60px; background: white; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1); margin-bottom: 40px;">
+        <div style="font-size: 64px; margin-bottom: 20px;">👤</div>
+        <h2 style="color: #32325d;">Profile Not Linked</h2>
+        <p style="color: #636b7d; max-width: 500px; margin: 0 auto 30px auto;">
+            Your account is registered, but your detailed profile (name, registration ID, etc.) has not been linked to
+            your user account yet.
+            {% if session.role != 'admin' %}
+            Please contact an Admin to link your profile using your registration number.
+            {% else %}
+            As an Admin, you can set up your own profile by uploading your details in the section below.
+            {% endif %}
+        </p>
+        <a href="{{ url_for('dashboard') }}"
+            style="padding: 12px 30px; background: #5e72e4; color: white; text-decoration: none; border-radius: 8px; font-weight: 700;">Back
+            to Dashboard</a>
+    </div>
+    {% endif %}
+
+    {% if profile %}
     {% if session.role == 'student' %}
     <div
-        style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1), 0 5px 15px rgba(0,0,0,0.07); border-top: 6px solid #5e72e4;">
+        style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1); border-top: 6px solid #5e72e4; margin-bottom: 40px;">
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Name</label>
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Name</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.name or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Register
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Register
                     Number</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.reg_no or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Class
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
                     & Section</label>
-                <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.class_name }} - {{
-                    profile.section }}</div>
+                <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.class_name or 'N/A' }} - {{
+                    profile.section or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Date
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Date
                     of Birth</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.dob or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Mother's
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Mother's
                     Name</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.mother_name or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Mother's
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Mother's
                     Phone</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.mother_phone or 'N/A' }}
                 </div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Father's
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Father's
                     Name</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.father_name or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Father's
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Father's
                     Phone</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.father_phone or 'N/A' }}
                 </div>
             </div>
             <div style="grid-column: span 2;">
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Address</label>
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Address</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.address or 'Optional' }}
                 </div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Blood
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Blood
                     Group</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.blood_group or 'Optional' }}
                 </div>
@@ -94,29 +115,29 @@
 
     {% elif session.role == 'teacher' %}
     <div
-        style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1), 0 5px 15px rgba(0,0,0,0.07); border-top: 6px solid #2dce89;">
+        style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1); border-top: 6px solid #2dce89; margin-bottom: 40px;">
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Name</label>
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Name</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.name or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Register
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Register
                     ID</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.register_id or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Main
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Main
                     Subject</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.main_subject or 'N/A' }}
                 </div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Class
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
                     Advisor</label>
                 <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.class_advisor or 'N/A' }}
                 </div>
@@ -125,82 +146,83 @@
     </div>
 
     {% elif session.role == 'admin' %}
-    <div style="display: flex; flex-direction: column; gap: 30px;">
-        <!-- Own Profile View -->
-        <div
-            style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1), 0 5px 15px rgba(0,0,0,0.07); border-top: 6px solid #f5365c;">
-            <h2 style="margin-top: 0; margin-bottom: 25px; color: #32325d; font-size: 22px;">My Admin Profile</h2>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
-                <div>
-                    <label
-                        style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Name</label>
-                    <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.name or 'N/A' }}</div>
+    <div
+        style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1); border-top: 6px solid #f5365c; margin-bottom: 40px;">
+        <h2 style="margin-top: 0; margin-bottom: 25px; color: #32325d; font-size: 22px;">My Admin Profile</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
+            <div>
+                <label
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Name</label>
+                <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.name or 'N/A' }}</div>
+            </div>
+            <div>
+                <label
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Register
+                    ID</label>
+                <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.register_id or 'N/A' }}</div>
+            </div>
+            <div>
+                <label
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Main
+                    Subject</label>
+                <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.main_subject or 'N/A' }}
                 </div>
-                <div>
-                    <label
-                        style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Register
-                        ID</label>
-                    <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.register_id or 'N/A' }}
-                    </div>
+            </div>
+            <div>
+                <label
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
+                    Advisor</label>
+                <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.class_advisor or 'N/A' }}
                 </div>
-                <div>
-                    <label
-                        style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Main
-                        Subject</label>
-                    <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.main_subject or 'N/A' }}
-                    </div>
-                </div>
-                <div>
-                    <label
-                        style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Class
-                        Advisor</label>
-                    <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.class_advisor or 'N/A' }}
-                    </div>
-                </div>
-                <div>
-                    <label
-                        style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 12px; margin-bottom: 8px;">Role</label>
-                    <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.role_title or 'Admin' }}
-                    </div>
+            </div>
+            <div>
+                <label
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Role
+                    Title</label>
+                <div style="font-size: 18px; color: #32325d; font-weight: 600;">{{ profile.role_title or 'Admin' }}
                 </div>
             </div>
         </div>
+    </div>
+    {% endif %}
+    {% endif %}
 
-        <!-- Admin Upload Section -->
-        <div style="background: #f8f9fe; padding: 40px; border-radius: 20px; border: 2px dashed #d1d9e6;">
-            <h2 style="margin-top: 0; margin-bottom: 10px; color: #32325d; font-size: 20px;">📤 Bulk Upload Profiles
-            </h2>
-            <p style="color: #636b7d; font-size: 14px; margin-bottom: 25px;">Upload students, teachers, or admin profile
-                data via JSON format.</p>
+    {% if session.role == 'admin' %}
+    <div style="background: #f8f9fe; padding: 40px; border-radius: 20px; border: 2px dashed #d1d9e6;">
+        <h2 style="margin-top: 0; margin-bottom: 10px; color: #32325d; font-size: 20px;">📤 Bulk Upload Profiles</h2>
+        <p style="color: #636b7d; font-size: 14px; margin-bottom: 25px;">Upload students, teachers, or admin profile
+            data via JSON format.</p>
 
-            <form action="{{ url_for('upload_profiles') }}" method="POST">
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">Profile Type</label>
-                    <select name="profile_type"
-                        style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;">
-                        <option value="student">Students</option>
-                        <option value="teacher">Teachers</option>
-                        <option value="admin">Admins</option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 8px;">JSON Data</label>
-                    <textarea name="profile_data" rows="8"
-                        placeholder='[{"name": "Adhil Salman", "register_number": "REG001", ...}]'
-                        style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7; font-family: monospace;"></textarea>
-                </div>
-                <button type="submit" style="
-                    padding: 15px 30px;
-                    background: #5e72e4;
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 700;
-                    cursor: pointer;
-                    width: 100%;
-                ">Upload Profiles</button>
-            </form>
-        </div>
+        <form action="{{ url_for('upload_profiles') }}" method="POST">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 13px;">Profile
+                    Type</label>
+                <select name="profile_type"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;">
+                    <option value="student">Students</option>
+                    <option value="teacher">Teachers</option>
+                    <option value="admin">Admins</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 13px;">JSON Data</label>
+                <textarea name="profile_data" rows="8"
+                    placeholder='[{"name": "Adhil Salman", "register_number": "REG001", ...}]'
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7; font-family: monospace;"></textarea>
+            </div>
+            <button type="submit" style="
+                padding: 15px 30px;
+                background: #5e72e4;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 700;
+                cursor: pointer;
+                width: 100%;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            ">Upload Profiles</button>
+        </form>
     </div>
     {% endif %}
 </div>

@@ -335,28 +335,54 @@ def register():
             # Get the newly created user
             user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
             
-            # If student, create student record
+            # Link existing profile or create new one
             if role == 'student' and register_no:
-                # Parse class format (e.g., "10-A" or "10 A" or just "10")
-                class_name = user_class.split('-')[0].split()[0].strip() if user_class else ''
-                section = (user_class.split('-')[1] if '-' in user_class else 'A').strip()
+                # Parse class format
+                class_parts = user_class.split('-') if '-' in user_class else user_class.split()
+                class_name = class_parts[0].strip() if class_parts else ''
+                section = class_parts[1].strip() if len(class_parts) > 1 else 'A'
                 
+                class_id = None
                 if class_name:
                     class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
                                             (f'Class {class_name}', section)).fetchone()
-                    
                     if not class_row:
                         conn.execute('INSERT INTO classes (class_name, section) VALUES (?, ?)', 
                                    (f'Class {class_name}', section))
                         conn.commit()
                         class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
                                                (f'Class {class_name}', section)).fetchone()
-                    
-                    if class_row:
-                        # Create student record linked to user
-                        conn.execute('INSERT INTO students (reg_no, name, class_id, user_id) VALUES (?, ?, ?, ?)',
-                                   (register_no, username, class_row['id'], user['id']))
-                        conn.commit()
+                    class_id = class_row['id'] if class_row else None
+
+                # Check if student record with this reg_no already exists (uploaded by admin)
+                existing_student = conn.execute('SELECT id FROM students WHERE reg_no = ?', (register_no,)).fetchone()
+                if existing_student:
+                    conn.execute('UPDATE students SET user_id = ?, name = ?, class_id = ? WHERE reg_no = ?',
+                               (user['id'], username, class_id, register_no))
+                else:
+                    conn.execute('INSERT INTO students (reg_no, name, class_id, user_id) VALUES (?, ?, ?, ?)',
+                               (register_no, username, class_id, user['id']))
+                conn.commit()
+            
+            elif role == 'teacher' and register_no:
+                existing_teacher = conn.execute('SELECT id FROM teacher_profiles WHERE register_id = ?', (register_no,)).fetchone()
+                if existing_teacher:
+                    conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ? WHERE register_id = ?',
+                               (user['id'], username, register_no))
+                else:
+                    conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id) VALUES (?, ?, ?)',
+                               (user['id'], username, register_no))
+                conn.commit()
+                
+            elif role == 'admin' and register_no:
+                existing_admin = conn.execute('SELECT id FROM admin_profiles WHERE register_id = ?', (register_no,)).fetchone()
+                if existing_admin:
+                    conn.execute('UPDATE admin_profiles SET user_id = ?, name = ? WHERE register_id = ?',
+                               (user['id'], username, register_no))
+                else:
+                    conn.execute('INSERT INTO admin_profiles (user_id, name, register_id) VALUES (?, ?, ?)',
+                               (user['id'], username, register_no))
+                conn.commit()
             
             conn.close()
             
