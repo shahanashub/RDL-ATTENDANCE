@@ -553,6 +553,53 @@ def admin_create_user():
         flash(f'Creation Error: {str(e)}', 'danger')
     return redirect(url_for('profile'))
 
+@app.route('/admin/delete_user', methods=['POST'])
+@login_required
+def admin_delete_user():
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        register_no = request.form.get('register_no', '').strip()
+        role = request.form.get('role', '').strip()
+        
+        if not register_no or not role:
+            flash('Registration number and role are required', 'danger')
+            return redirect(url_for('profile'))
+            
+        conn = get_db()
+        
+        # 1. Find user_id first
+        user_id = None
+        if role == 'student':
+            row = conn.execute('SELECT user_id FROM students WHERE reg_no = ?', (register_no,)).fetchone()
+            if row: user_id = row['user_id']
+            # Delete from students
+            conn.execute('DELETE FROM students WHERE reg_no = ?', (register_no,))
+        elif role == 'teacher':
+            row = conn.execute('SELECT user_id FROM teacher_profiles WHERE register_id = ?', (register_no,)).fetchone()
+            if row: user_id = row['user_id']
+            # Delete from teacher_profiles
+            conn.execute('DELETE FROM teacher_profiles WHERE register_id = ?', (register_no,))
+        elif role == 'admin':
+            row = conn.execute('SELECT user_id FROM admin_profiles WHERE register_id = ?', (register_no,)).fetchone()
+            if row: user_id = row['user_id']
+            # Delete from admin_profiles
+            conn.execute('DELETE FROM admin_profiles WHERE register_id = ?', (register_no,))
+            
+        # 2. Delete from users table if user_id exists
+        if user_id:
+            conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+            
+        conn.commit()
+        conn.close()
+        flash(f'Account {register_no} deleted successfully', 'success')
+    except Exception as e:
+        if 'conn' in locals():
+            conn.close()
+        flash(f'Deletion Error: {str(e)}', 'danger')
+        
+    return redirect(url_for('profile'))
+
 @app.route('/dashboard')
 @login_required
 def dashboard():

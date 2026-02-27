@@ -421,6 +421,18 @@
                 font-weight: 700;
                 cursor: pointer;
             }
+
+            .delete-btn {
+                padding: 6px 12px;
+                border-radius: 4px;
+                background: #f5365c;
+                color: white;
+                border: none;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                margin-left: 5px;
+            }
         </style>
 
         <div id="tab-students" class="tab-content">
@@ -439,7 +451,15 @@
                         <td>{{ s.reg_no }}</td>
                         <td>{{ s.name }}</td>
                         <td>{{ s.class_name }} {{ s.section }}</td>
-                        <td><button class="edit-btn" onclick='editProfileFromRow(this, "student")'>EDIT</button></td>
+                        <td style="display: flex; align-items: center;">
+                            <button class="edit-btn" onclick='editProfileFromRow(this, "student")'>EDIT</button>
+                            <form action="{{ url_for('admin_delete_user') }}" method="POST" style="margin: 0;"
+                                onsubmit="return confirm('Are you sure you want to delete this student account?');">
+                                <input type="hidden" name="register_no" value="{{ s.reg_no }}">
+                                <input type="hidden" name="role" value="student">
+                                <button type="submit" class="delete-btn">DELETE</button>
+                            </form>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -462,7 +482,15 @@
                         <td>{{ t.register_id }}</td>
                         <td>{{ t.name }}</td>
                         <td>{{ t.main_subject }}</td>
-                        <td><button class="edit-btn" onclick='editProfileFromRow(this, "teacher")'>EDIT</button></td>
+                        <td style="display: flex; align-items: center;">
+                            <button class="edit-btn" onclick='editProfileFromRow(this, "teacher")'>EDIT</button>
+                            <form action="{{ url_for('admin_delete_user') }}" method="POST" style="margin: 0;"
+                                onsubmit="return confirm('Are you sure you want to delete this teacher account?');">
+                                <input type="hidden" name="register_no" value="{{ t.register_id }}">
+                                <input type="hidden" name="role" value="teacher">
+                                <button type="submit" class="delete-btn">DELETE</button>
+                            </form>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -485,7 +513,15 @@
                         <td>{{ a.register_id }}</td>
                         <td>{{ a.name }}</td>
                         <td>{{ a.role_title }}</td>
-                        <td><button class="edit-btn" onclick='editProfileFromRow(this, "admin")'>EDIT</button></td>
+                        <td style="display: flex; align-items: center;">
+                            <button class="edit-btn" onclick='editProfileFromRow(this, "admin")'>EDIT</button>
+                            <form action="{{ url_for('admin_delete_user') }}" method="POST" style="margin: 0;"
+                                onsubmit="return confirm('Are you sure you want to delete this admin account?');">
+                                <input type="hidden" name="register_no" value="{{ a.register_id }}">
+                                <input type="hidden" name="role" value="admin">
+                                <button type="submit" class="delete-btn">DELETE</button>
+                            </form>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
