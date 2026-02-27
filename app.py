@@ -125,6 +125,18 @@ def init_db():
             FOREIGN KEY (class_id) REFERENCES classes (id),
             FOREIGN KEY (user_id) REFERENCES users (id)
         )''')
+
+        # Simple migration for existing tables
+        new_student_cols = [
+            ('mother_name', 'TEXT'), ('mother_phone', 'TEXT'),
+            ('father_name', 'TEXT'), ('father_phone', 'TEXT'),
+            ('address', 'TEXT'), ('dob', 'TEXT'), ('blood_group', 'TEXT')
+        ]
+        for col_name, col_type in new_student_cols:
+            try:
+                conn.execute(f"ALTER TABLE students ADD COLUMN {col_name} {col_type}")
+            except Exception:
+                pass # Column likely already exists
         
         # Create subjects table
         conn.execute(f'''CREATE TABLE IF NOT EXISTS subjects (
