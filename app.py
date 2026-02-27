@@ -132,11 +132,19 @@ def init_db():
             ('father_name', 'TEXT'), ('father_phone', 'TEXT'),
             ('address', 'TEXT'), ('dob', 'TEXT'), ('blood_group', 'TEXT')
         ]
+        
         for col_name, col_type in new_student_cols:
             try:
-                conn.execute(f"ALTER TABLE students ADD COLUMN {col_name} {col_type}")
+                # Postgres supports ADD COLUMN IF NOT EXISTS in 9.6+
+                if isinstance(conn, PostgresWrapper):
+                    conn.execute(f"ALTER TABLE students ADD COLUMN IF NOT EXISTS {col_name} {col_type}")
+                else:
+                    conn.execute(f"ALTER TABLE students ADD COLUMN {col_name} {col_type}")
             except Exception:
-                pass # Column likely already exists
+                # For SQLite or older Postgres, catch if column already exists
+                if isinstance(conn, PostgresWrapper):
+                    conn.conn.rollback() # Reset transaction state if failed
+                pass
         
         # Create subjects table
         conn.execute(f'''CREATE TABLE IF NOT EXISTS subjects (
@@ -267,9 +275,9 @@ def init_db():
             conn.commit()
         
         conn.close()
-        print('✓ Database initialized successfully', flush=True)
+        print('OK Database initialized successfully', flush=True)
     except Exception as e:
-        print(f'❌ Database initialization error: {str(e)}', flush=True)
+        print(f'ERROR Database initialization error: {str(e)}', flush=True)
 
 @app.route('/health')
 def health():
