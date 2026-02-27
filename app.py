@@ -1703,46 +1703,82 @@ def timetable():
     conn = get_db()
     classes = conn.execute('SELECT * FROM classes ORDER BY class_name, section').fetchall()
     
-    class_id = request.args.get('class_id')
-    day = request.args.get('day')
+    # Extract unique class names and sections for better selector
+    class_names = sorted(list(set(c['class_name'] for c in classes)))
+    sections = sorted(list(set(c['section'] for c in classes)))
     
+    class_id = request.args.get('class_id')
+    selected_class_name = request.args.get('class_name')
+    selected_section = request.args.get('section')
+    
+    # If using separate name/section, find the id
+    if selected_class_name and selected_section and not class_id:
+        cls_match = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
+                                (selected_class_name, selected_section)).fetchone()
+        if cls_match:
+            class_id = cls_match['id']
+            
     timetable_data = []
     if class_id:
-        query = 'SELECT * FROM timetables WHERE class_id = ?'
-        params = [class_id]
-        if day:
-            query += ' AND day = ?'
-            params.append(day)
-        timetable_data = conn.execute(query, tuple(params)).fetchall()
+        timetable_data = conn.execute('SELECT * FROM timetables WHERE class_id = ? ORDER BY CASE \
+            WHEN day="Monday" THEN 1 \
+            WHEN day="Tuesday" THEN 2 \
+            WHEN day="Wednesday" THEN 3 \
+            WHEN day="Thursday" THEN 4 \
+            WHEN day="Friday" THEN 5 \
+            WHEN day="Saturday" THEN 6 \
+            ELSE 7 END', (class_id,)).fetchall()
         
     conn.close()
-    return render_template('timetable.html', classes=classes, timetable=timetable_data, 
-                           selected_class_id=class_id)
+    return render_template('timetable.html', classes=classes, class_names=class_names, 
+                           sections=sections, timetable=timetable_data, 
+                           selected_class_id=class_id, 
+                           selected_class_name=selected_class_name,
+                           selected_section=selected_section)
 
 @app.route('/upload_timetable', methods=['POST'])
 @login_required
 def upload_timetable():
-    if session.get('role') not in ['admin', 'teacher']:
+    if session.get('role') not in ['admin', 'teacher']:\
         abort(403)
         
     try:
-        class_id = request.form.get('class_id')
-        day = request.form.get('day')
-        subject = request.form.get('subject')
-        faculty = request.form.get('faculty')
+        class_name = request.form.get('class_name')
+        section = request.form.get('section')
+        days = request.form.getlist('day[]')
+        subjects = request.form.getlist('subject[]')
+        faculties = request.form.getlist('faculty[]')
         
-        if not all([class_id, day, subject, faculty]):
-            flash('All fields are required', 'danger')
+        if not class_name or not section:
+            flash('Class and Section are required', 'danger')
             return redirect(url_for('timetable'))
             
         conn = get_db()
-        # Delete existing if same day and subject (or maybe same slot/period, but user didn't specify slot)
-        # Assuming one entry per day per subject for now as per "Each day which subject"
-        conn.execute('INSERT OR REPLACE INTO timetables (class_id, day, subject_name, faculty_name) VALUES (?, ?, ?, ?)',
-                    (class_id, day, subject, faculty))
+        # Find class_id
+        cls_match = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
+                                (class_name, section)).fetchone()
+        if not cls_match:
+            flash(f'Class {class_name} {section} not found. Please create class first.', 'danger')
+            conn.close()
+            return redirect(url_for('timetable'))
+            
+        class_id = cls_match['id']
+        
+        # Save each day's entry if subject is provided
+        count = 0
+        for i in range(len(days)):
+            day = days[i]
+            subj = subjects[i].strip() if i < len(subjects) else ''
+            fac = faculties[i].strip() if i < len(faculties) else ''
+            
+            if subj: # Only save if subject is entered
+                conn.execute('INSERT OR REPLACE INTO timetables (class_id, day, subject_name, faculty_name) VALUES (?, ?, ?, ?)',
+                            (class_id, day, subj, fac))
+                count += 1
+                
         conn.commit()
         conn.close()
-        flash('Timetable entry saved successfully', 'success')
+        flash(f'Successfully saved {count} timetable entries', 'success')
     except Exception as e:
         flash(f'Error saving timetable: {str(e)}', 'danger')
         

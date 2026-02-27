@@ -27,16 +27,25 @@
     <div
         style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px;">
         <form method="GET" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 200px;">
+            <div style="flex: 1; min-width: 150px;">
                 <label
-                    style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Select
-                    Class & Section</label>
-                <select name="class_id"
+                    style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class</label>
+                <select name="class_name"
                     style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
-                    <option value="">-- Choose Class --</option>
-                    {% for cls in classes %}
-                    <option value="{{ cls.id }}" {% if selected_class_id|string==cls.id|string %}selected{% endif %}>{{
-                        cls.class_name }} - {{ cls.section }}</option>
+                    <option value="">-- Class --</option>
+                    {% for name in class_names %}
+                    <option value="{{ name }}" {% if selected_class_name==name %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 0.5; min-width: 100px;">
+                <label
+                    style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Section</label>
+                <select name="section"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
+                    <option value="">-- Section --</option>
+                    {% for sec in sections %}
+                    <option value="{{ sec }}" {% if selected_section==sec %}selected{% endif %}>{{ sec }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -47,7 +56,7 @@
             {% if session.role in ['admin', 'teacher'] %}
             <button type="button" onclick="document.getElementById('uploadPanel').style.display='block'"
                 style="padding: 12px 25px; background: #2dce89; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">➕
-                Add Entry</button>
+                Manage Weekly Table</button>
             {% endif %}
         </form>
     </div>
@@ -55,45 +64,74 @@
     {% if session.role in ['admin', 'teacher'] %}
     <!-- Upload Panel (Hidden by default) -->
     <div id="uploadPanel"
-        style="display: none; background: #f8f9fe; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 2px solid #2dce89;">
-        <h3 style="margin-top: 0; margin-bottom: 20px; color: #32325d;">Create Time Table Entry</h3>
-        <form action="{{ url_for('upload_timetable') }}" method="POST"
-            style="display: grid; grid-template-columns: repeat(2, 1fr) auto; gap: 15px; align-items: flex-end;">
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Class ID (from URL
-                    or Selection)</label>
-                <input type="text" name="class_id" value="{{ selected_class_id or '' }}" readonly
-                    style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd; background: #eee;">
+        style="display: none; background: #f8f9fe; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 2px solid #2dce89; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <h3 style="margin-top: 0; margin-bottom: 25px; color: #32325d;">📅 Set Weekly Timetable</h3>
+        <form action="{{ url_for('upload_timetable') }}" method="POST">
+            <div
+                style="display: flex; gap: 20px; margin-bottom: 25px; background: white; padding: 15px; border-radius: 8px; border-left: 5px solid #2dce89;">
+                <div style="flex: 1;">
+                    <label
+                        style="display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #8898aa; margin-bottom: 8px;">Target
+                        Class</label>
+                    <select name="class_name"
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" required>
+                        <option value="">-- Select Class --</option>
+                        {% for name in class_names %}
+                        <option value="{{ name }}" {% if selected_class_name==name %}selected{% endif %}>{{ name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label
+                        style="display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #8898aa; margin-bottom: 8px;">Target
+                        Section</label>
+                    <select name="section"
+                        style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;" required>
+                        <option value="">-- Select Section --</option>
+                        {% for sec in sections %}
+                        <option value="{{ sec }}" {% if selected_section==sec %}selected{% endif %}>{{ sec }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Day</label>
-                <select name="day" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"
-                    required>
-                    <option value="Monday">Monday</option>
-                    <option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option>
-                    <option value="Thursday">Thursday</option>
-                    <option value="Friday">Friday</option>
-                    <option value="Saturday">Saturday</option>
-                </select>
+
+            <div style="overflow-x: auto; background: white; border-radius: 8px; margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #e9ecef;">
+                            <th style="padding: 12px; text-align: left; font-size: 12px;">Day</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px;">Subject Name</th>
+                            <th style="padding: 12px; text-align: left; font-size: 12px;">Faculty Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: 700; color: #32325d;">
+                                {{ day }}
+                                <input type="hidden" name="day[]" value="{{ day }}">
+                            </td>
+                            <td style="padding: 8px;">
+                                <input type="text" name="subject[]" placeholder="Enter Subject"
+                                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            </td>
+                            <td style="padding: 8px;">
+                                <input type="text" name="faculty[]" placeholder="Assign Teacher"
+                                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Subject</label>
-                <input type="text" name="subject" placeholder="e.g. Physics"
-                    style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;" required>
-            </div>
-            <div>
-                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Faculty
-                    Name</label>
-                <input type="text" name="faculty" placeholder="e.g. Mr. Smith"
-                    style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;" required>
-            </div>
-            <div style="grid-column: span 3; display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button type="button" onclick="document.getElementById('uploadPanel').style.display='none'"
-                    style="padding: 10px 20px; background: #ddd; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    style="padding: 12px 25px; background: #fdfdfd; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; color: #525f7f; font-weight: 700;">Cancel</button>
                 <button type="submit"
-                    style="padding: 10px 30px; background: #2dce89; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer;">Save
-                    Entry</button>
+                    style="padding: 12px 40px; background: #2dce89; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(45, 206, 137, 0.3);">💾
+                    Save Weekly Table</button>
             </div>
         </form>
     </div>
