@@ -1,259 +1,219 @@
-<div style="margin-bottom: 40px;">
-    <h1>Welcome to Scientia Dashboard</h1>
-    <p style="font-size: 16px; color: #636b7d; margin-bottom: 30px;">Your attendance management system for modern
-        education</p>
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 50px;
+    }
 
+    .dash-card {
+        background: white;
+        padding: 35px 25px;
+        border-radius: 12px;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 4px 15px rgba(50, 50, 93, 0.05);
+        border-top: 6px solid transparent;
+        height: 100%;
+        cursor: pointer;
+    }
 
-    <div style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
-        {% if session.role in ['admin', 'teacher'] %}
-        <a href="{{ url_for('attendance') }}" style="
-            display: inline-block;
-            padding: 18px 48px;
-            background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(94, 114, 228, 0.4);
-        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(94, 114, 228, 0.5)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(94, 114, 228, 0.4)'">
-            📊 Mark Attendance
-        </a>
-        {% endif %}
+    .dash-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1);
+    }
 
-        <a href="{{ url_for('history') }}" style="
-            display: inline-block;
-            padding: 18px 48px;
-            background: linear-gradient(135deg, #11cdef 0%, #0da5c0 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(17, 205, 239, 0.4);
-        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(17, 205, 239, 0.5)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(17, 205, 239, 0.4)'">
-            📜 Attendance History
-        </a>
+    .card-icon-container {
+        font-size: 56px;
+        margin-bottom: 20px;
+        display: block;
+    }
 
-        <a href="{{ url_for('education') }}" style="
-            display: inline-block;
-            padding: 18px 48px;
-            background: linear-gradient(135deg, #fb6340 0%, #fbb140 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(251, 99, 64, 0.4);
-        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(251, 99, 64, 0.5)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(251, 99, 64, 0.4)'">
-            🎓 Education
-        </a>
+    .card-title {
+        color: #32325d;
+        font-size: 20px;
+        font-weight: 800;
+        margin: 0 0 12px 0;
+        text-transform: capitalize;
+    }
 
-        <a href="{{ url_for('profile') }}" style="
-            display: inline-block;
-            padding: 18px 48px;
-            background: linear-gradient(135deg, #2dce89 0%, #2dcecc 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(45, 206, 137, 0.4);
-        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(45, 206, 137, 0.5)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(45, 206, 137, 0.4)'">
-            👤 Profile
-        </a>
+    .card-desc {
+        color: #636b7d;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+    }
+</style>
 
-        {% if session.role == 'admin' %}
-        <button onclick="toggleStudentSheet()" style="
-            display: inline-block;
-            padding: 18px 48px;
-            background: linear-gradient(135deg, #fb6340 0%, #ff6b9d 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            border: none;
-            font-weight: 700;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            box-shadow: 0 8px 25px rgba(251, 99, 64, 0.4);
-        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(251, 99, 64, 0.5)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(251, 99, 64, 0.4)'">
-            📝 Upload Students
-        </button>
-        {% endif %}
+<div class="dashboard-grid">
+    {% if session.role in ['admin', 'teacher'] %}
+    <a href="{{ url_for('attendance') }}" class="dash-card" style="border-top-color: #5e72e4;">
+        <span class="card-icon-container">📊</span>
+        <h3 class="card-title">Mark Attendance</h3>
+        <p class="card-desc">Quickly record and manage student attendance for your active classes.</p>
+    </a>
+    {% endif %}
 
-        <a href="{{ url_for('logout') }}" style="
-            display: inline-block;
-            padding: 18px 48px;
-            background: linear-gradient(135deg, #f5365c 0%, #f56036 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(245, 54, 92, 0.4);
-        " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 35px rgba(245, 54, 92, 0.5)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(245, 54, 92, 0.4)'">
-            🚪 Logout
-        </a>
+    <a href="{{ url_for('history') }}" class="dash-card" style="border-top-color: #11cdef;">
+        <span class="card-icon-container">📅</span>
+        <h3 class="card-title">Attendance History</h3>
+        <p class="card-desc">Review detailed logs and generate reports of past attendance sessions.</p>
+    </a>
+
+    <a href="{{ url_for('education') }}" class="dash-card" style="border-top-color: #fb6340;">
+        <span class="card-icon-container">🎓</span>
+        <h3 class="card-title">Education</h3>
+        <p class="card-desc">Access academic resources, course materials, and performance tracking.</p>
+    </a>
+
+    <a href="{{ url_for('profile') }}" class="dash-card" style="border-top-color: #2dce89;">
+        <span class="card-icon-container">👤</span>
+        <h3 class="card-title">User Profile</h3>
+        <p class="card-desc">Manage your personal information and account settings.</p>
+    </a>
+
+    {% if session.role == 'admin' %}
+    <div onclick="toggleStudentSheet()" class="dash-card" style="border-top-color: #ff6b9d;">
+        <span class="card-icon-container">📝</span>
+        <h3 class="card-title">Upload Students</h3>
+        <p class="card-desc">Import batches of student data using the bulk registration tool.</p>
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('logout') }}" class="dash-card" style="border-top-color: #f5365c;">
+        <span class="card-icon-container">🚪</span>
+        <h3 class="card-title">Sign Out</h3>
+        <p class="card-desc">Safely end your current session and exit the portal.</p>
+    </a>
+</div>
+
+<!-- Student Sheet Panel for Dashboard -->
+{% if session.role == 'admin' %}
+<div id="studentSheetPanel"
+    style="display: none; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1); margin-top: 30px; border-left: 6px solid #fb6340;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: #32325d;">👥 Bulk Student Upload</h2>
+        <button onclick="toggleStudentSheet()"
+            style="background: none; border: none; font-size: 30px; cursor: pointer; color: #adb5bd;">✕</button>
     </div>
 
-    <!-- Student Sheet Panel for Dashboard -->
-    {% if session.role == 'admin' %}
-    <div id="studentSheetPanel"
-        style="display: none; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1); margin-top: 30px; border-left: 6px solid #fb6340;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-            <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: #32325d;">👥 Bulk Student Upload</h2>
-            <button onclick="toggleStudentSheet()"
-                style="background: none; border: none; font-size: 30px; cursor: pointer; color: #adb5bd;">✕</button>
+    <form method="POST" action="{{ url_for('submit_student_sheet') }}" id="studentSheetForm">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div>
+                <label
+                    style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
+                    Name (Numeric)</label>
+                <input type="number" id="newClass" placeholder="e.g., 10"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
+            </div>
+            <div>
+                <label
+                    style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Section</label>
+                <input type="text" id="newSection" placeholder="e.g., A"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
+            </div>
         </div>
 
-        <form method="POST" action="{{ url_for('submit_student_sheet') }}" id="studentSheetForm">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                <div>
-                    <label
-                        style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
-                        Name (Numeric)</label>
-                    <input type="number" id="newClass" placeholder="e.g., 10"
-                        style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
-                </div>
-                <div>
-                    <label
-                        style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Section</label>
-                    <input type="text" id="newSection" placeholder="e.g., A"
-                        style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
-                </div>
+        <div style="margin-bottom: 30px;">
+            <h4 style="margin-top: 0; margin-bottom: 15px; color: #525f7f; font-size: 14px;">Enter Student Details
+            </h4>
+            <div style="background: #f8f9fe; padding: 20px; border-radius: 12px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr
+                            style="text-align: left; color: #8898aa; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <th style="padding: 10px;">Reg No.</th>
+                            <th style="padding: 10px;">Name</th>
+                            <th style="padding: 10px; width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- Rows added via JS -->
+                    </tbody>
+                </table>
+                <button type="button" onclick="addStudentRow()"
+                    style="margin-top: 15px; background: none; border: 2px dashed #adb5bd; color: #8898aa; padding: 10px; width: 100%; border-radius: 8px; font-weight: 600; cursor: pointer;">+
+                    Add Student Row</button>
             </div>
+        </div>
 
-            <div style="margin-bottom: 30px;">
-                <h4 style="margin-top: 0; margin-bottom: 15px; color: #525f7f; font-size: 14px;">Enter Student Details
-                </h4>
-                <div style="background: #f8f9fe; padding: 20px; border-radius: 12px;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr
-                                style="text-align: left; color: #8898aa; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
-                                <th style="padding: 10px;">Reg No.</th>
-                                <th style="padding: 10px;">Name</th>
-                                <th style="padding: 10px; width: 50px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="studentTableBody">
-                            <!-- Rows added via JS -->
-                        </tbody>
-                    </table>
-                    <button type="button" onclick="addStudentRow()"
-                        style="margin-top: 15px; background: none; border: 2px dashed #adb5bd; color: #8898aa; padding: 10px; width: 100%; border-radius: 8px; font-weight: 600; cursor: pointer;">+
-                        Add Student Row</button>
-                </div>
-            </div>
+        <input type="hidden" id="classField" name="sheet_class" value="">
+        <input type="hidden" id="sectionField" name="sheet_section" value="">
+        <input type="hidden" id="studentDataField" name="student_data" value="">
 
-            <input type="hidden" id="classField" name="sheet_class" value="">
-            <input type="hidden" id="sectionField" name="sheet_section" value="">
-            <input type="hidden" id="studentDataField" name="student_data" value="">
+        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+            <button type="button" onclick="toggleStudentSheet()"
+                style="padding: 12px 30px; background: #eee; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Cancel</button>
+            <button type="submit"
+                style="padding: 12px 30px; background: #fb6340; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Save
+                Students</button>
+        </div>
+    </form>
+</div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 15px;">
-                <button type="button" onclick="toggleStudentSheet()"
-                    style="padding: 12px 30px; background: #eee; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Cancel</button>
-                <button type="submit"
-                    style="padding: 12px 30px; background: #fb6340; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Save
-                    Students</button>
-            </div>
-        </form>
-    </div>
-
-    <script>
-        let rowCount = 0;
-        function toggleStudentSheet() {
-            const panel = document.getElementById('studentSheetPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-            if (panel.style.display === 'block' && rowCount === 0) addStudentRow();
-            if (panel.style.display === 'block') panel.scrollIntoView({ behavior: 'smooth' });
-        }
-        function addStudentRow() {
-            rowCount++;
-            const tbody = document.getElementById('studentTableBody');
-            const row = document.createElement('tr');
-            row.id = `row-${rowCount}`;
-            row.innerHTML = `
+<script>
+    let rowCount = 0;
+    function toggleStudentSheet() {
+        const panel = document.getElementById('studentSheetPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        if (panel.style.display === 'block' && rowCount === 0) addStudentRow();
+        if (panel.style.display === 'block') panel.scrollIntoView({ behavior: 'smooth' });
+    }
+    function addStudentRow() {
+        rowCount++;
+        const tbody = document.getElementById('studentTableBody');
+        const row = document.createElement('tr');
+        row.id = `row-${rowCount}`;
+        row.innerHTML = `
                 <td style="padding: 10px;"><input type="text" class="reg-input" placeholder="e.g. 101" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #dcdfe6;"></td>
                 <td style="padding: 10px;"><input type="text" class="name-input" placeholder="e.g. John Doe" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #dcdfe6;"></td>
                 <td style="padding: 10px; text-align: center;"><button type="button" onclick="removeStudentRow(${rowCount})" style="background: none; border: none; color: #f5365c; cursor: pointer; font-size: 18px;">✕</button></td>
             `;
-            tbody.appendChild(row);
-        }
-        function removeStudentRow(id) { document.getElementById(`row-${id}`).remove(); }
+        tbody.appendChild(row);
+    }
+    function removeStudentRow(id) { document.getElementById(`row-${id}`).remove(); }
 
-        document.getElementById('studentSheetForm').addEventListener('submit', function (e) {
-            const cls = document.getElementById('newClass').value;
-            const sec = document.getElementById('newSection').value;
-            const rows = document.querySelectorAll('#studentTableBody tr');
-            const data = [];
-            rows.forEach(r => {
-                const reg = r.querySelector('.reg-input').value.trim();
-                const name = r.querySelector('.name-input').value.trim();
-                if (reg && name) data.push({ regNo: reg, studentName: name });
-            });
-            if (!cls || !sec || data.length === 0) {
-                e.preventDefault();
-                alert('Please fill class, section and at least one student');
-                return;
-            }
-            document.getElementById('classField').value = cls;
-            document.getElementById('sectionField').value = sec;
-            document.getElementById('studentDataField').value = JSON.stringify(data);
+    document.getElementById('studentSheetForm').addEventListener('submit', function (e) {
+        const cls = document.getElementById('newClass').value;
+        const sec = document.getElementById('newSection').value;
+        const rows = document.querySelectorAll('#studentTableBody tr');
+        const data = [];
+        rows.forEach(r => {
+            const reg = r.querySelector('.reg-input').value.trim();
+            const name = r.querySelector('.name-input').value.trim();
+            if (reg && name) data.push({ regNo: reg, studentName: name });
         });
-    </script>
-    {% endif %}
+        if (!cls || !sec || data.length === 0) {
+            e.preventDefault();
+            alert('Please fill class, section and at least one student');
+            return;
+        }
+        document.getElementById('classField').value = cls;
+        document.getElementById('sectionField').value = sec;
+        document.getElementById('studentDataField').value = JSON.stringify(data);
+    });
+</script>
+{% endif %}
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
-        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #5e72e4; text-align: center; transition: all 0.3s ease;"
-            onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
-            <div style="font-size: 48px; margin-bottom: 15px;">📚</div>
-            <h3 style="color: #32325d; margin: 0 0 10px 0; font-size: 18px;">Education</h3>
-            <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Track and manage student attendance
-                effectively</p>
-        </div>
-
-        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #2dce89; text-align: center; transition: all 0.3s ease;"
-            onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
-            <div style="font-size: 48px; margin-bottom: 15px;">✅</div>
-            <h3 style="color: #32325d; margin: 0 0 10px 0; font-size: 18px;">Reliable</h3>
-            <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Secure and dependable attendance
-                recording</p>
-        </div>
-
-        <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #11cdef; text-align: center; transition: all 0.3s ease;"
-            onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'"
-            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
-            <div style="font-size: 48px; margin-bottom: 15px;">📈</div>
-            <h3 style="color: #32325d; margin: 0 0 10px 0; font-size: 18px;">Analytics</h3>
-            <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">View detailed attendance reports
-                and
-                history</p>
-        </div>
+<div class="dashboard-grid" style="margin-top: 40px; border-top: 2px dashed #eee; padding-top: 40px;">
+    <div class="dash-card" style="border-top-color: #5e72e4;">
+        <span class="card-icon-container">📚</span>
+        <h3 class="card-title">Education</h3>
+        <p class="card-desc">Track and manage student attendance effectively throughout the academic year.</p>
     </div>
+
+    <div class="dash-card" style="border-top-color: #2dce89;">
+        <span class="card-icon-container">✅</span>
+        <h3 class="card-title">Reliable</h3>
+        <p class="card-desc">Experience secure and dependable attendance recording with automated verification.</p>
+    </div>
+
+    <div class="dash-card" style="border-top-color: #11cdef;">
+        <span class="card-icon-container">📈</span>
+        <h3 class="card-title">Analytics</h3>
+        <p class="card-desc">View detailed attendance reports and historical trends with interactive charts.</p>
+    </div>
+</div>
+</div>
