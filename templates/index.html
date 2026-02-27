@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scientia - Attendance Management System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
-    <div style="text-align: center; padding: 60px 20px;">
-        <h1 style="font-size: 48px; margin-bottom: 15px;">🎓 Scientia</h1>
-        <p style="font-size: 18px; color: #636b7d; margin-bottom: 50px; font-weight: 500;">Smart Attendance Management System</p>
-        
+    <div style="text-align: center; padding: 40px 20px;">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Scientia Logo"
+            style="height: 180px; width: auto; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <p style="font-size: 18px; color: #636b7d; margin-bottom: 50px; font-weight: 500;">Smart Attendance Management
+            System</p>
+
         <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 60px;">
             <a href="{{ url_for('login') }}" style="
                 display: inline-block;
@@ -25,10 +29,11 @@
                 font-size: 14px;
                 transition: all 0.3s ease;
                 box-shadow: 0 4px 15px rgba(94, 114, 228, 0.3);
-            " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 25px rgba(94, 114, 228, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(94, 114, 228, 0.3)'">
+            " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 25px rgba(94, 114, 228, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(94, 114, 228, 0.3)'">
                 🔐 Sign In
             </a>
-            
+
             <a href="{{ url_for('register') }}" style="
                 display: inline-block;
                 padding: 14px 40px;
@@ -42,30 +47,42 @@
                 font-size: 14px;
                 transition: all 0.3s ease;
                 box-shadow: 0 4px 15px rgba(45, 206, 137, 0.3);
-            " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 25px rgba(45, 206, 137, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(45, 206, 137, 0.3)'">
+            " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 25px rgba(45, 206, 137, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(45, 206, 137, 0.3)'">
                 ✨ Create Account
             </a>
         </div>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; max-width: 1000px; margin: 0 auto;">
-            <div style="background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #5e72e4; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; max-width: 1000px; margin: 0 auto;">
+            <div style="background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #5e72e4; transition: all 0.3s ease;"
+                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
                 <div style="font-size: 40px; margin-bottom: 15px;">👥</div>
                 <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">For Students</h3>
-                <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Track your attendance record and view your attendance history</p>
+                <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Track your attendance record
+                    and view your attendance history</p>
             </div>
-            
-            <div style="background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #11cdef; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+
+            <div style="background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #11cdef; transition: all 0.3s ease;"
+                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
                 <div style="font-size: 40px; margin-bottom: 15px;">📋</div>
                 <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">For Teachers</h3>
-                <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Manage and record daily student attendance with ease</p>
+                <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Manage and record daily student
+                    attendance with ease</p>
             </div>
-            
-            <div style="background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #fb6340; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+
+            <div style="background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-top: 4px solid #fb6340; transition: all 0.3s ease;"
+                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0, 0, 0, 0.12)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
                 <div style="font-size: 40px; margin-bottom: 15px;">🔧</div>
                 <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">For Admins</h3>
-                <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Oversee all attendance records and generate reports</p>
+                <p style="color: #636b7d; margin: 0; font-size: 14px; line-height: 1.6;">Oversee all attendance records
+                    and generate reports</p>
             </div>
         </div>
     </div>
 </body>
+
 </html>
