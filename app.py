@@ -115,6 +115,13 @@ def init_db():
             name TEXT NOT NULL,
             class_id INTEGER,
             user_id INTEGER UNIQUE,
+            mother_name TEXT,
+            mother_phone TEXT,
+            father_name TEXT,
+            father_phone TEXT,
+            address TEXT,
+            dob TEXT,
+            blood_group TEXT,
             FOREIGN KEY (class_id) REFERENCES classes (id),
             FOREIGN KEY (user_id) REFERENCES users (id)
         )''')
@@ -139,6 +146,40 @@ def init_db():
             UNIQUE(class_id, subject_id, att_date, reg_no),
             FOREIGN KEY (class_id) REFERENCES classes (id),
             FOREIGN KEY (subject_id) REFERENCES subjects (id)
+        )''')
+
+        # Create teacher_profiles table
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS teacher_profiles (
+            id {pk_type},
+            user_id INTEGER UNIQUE,
+            name TEXT NOT NULL,
+            register_id TEXT UNIQUE NOT NULL,
+            main_subject TEXT,
+            class_advisor TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )''')
+
+        # Create admin_profiles table
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS admin_profiles (
+            id {pk_type},
+            user_id INTEGER UNIQUE,
+            name TEXT NOT NULL,
+            register_id TEXT UNIQUE NOT NULL,
+            main_subject TEXT,
+            class_advisor TEXT,
+            role_title TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )''')
+
+        # Create timetables table
+        conn.execute(f'''CREATE TABLE IF NOT EXISTS timetables (
+            id {pk_type},
+            class_id INTEGER NOT NULL,
+            day TEXT NOT NULL,
+            subject_name TEXT NOT NULL,
+            faculty_name TEXT NOT NULL,
+            UNIQUE(class_id, day, subject_name),
+            FOREIGN KEY (class_id) REFERENCES classes (id)
         )''')
 
         # Create exams table
@@ -1222,6 +1263,202 @@ def update_fee_record():
         return jsonify({'success': True, 'message': 'Fee record updated'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/profile')
+@login_required
+def profile():
+    role = session.get('role')
+    user_id = session.get('user_id')
+    conn = get_db()
+    profile_data = None
+    
+    if role == 'student':
+        profile_data = conn.execute('''
+            SELECT s.*, c.class_name, c.section 
+            FROM students s 
+            LEFT JOIN classes c ON s.class_id = c.id 
+            WHERE s.user_id = ?
+        ''', (user_id,)).fetchone()
+    elif role == 'teacher':
+        profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE user_id = ?', (user_id,)).fetchone()
+    elif role == 'admin':
+        profile_data = conn.execute('SELECT * FROM admin_profiles WHERE user_id = ?', (user_id,)).fetchone()
+        
+    conn.close()
+    return render_template('profile.html', profile=profile_data)
+
+@app.route('/upload_profiles', methods=['POST'])
+@login_required
+def upload_profiles():
+    if session.get('role') != 'admin':
+        abort(403)
+    
+    try:
+        import json
+        profile_type = request.form.get('profile_type') # 'student', 'teacher', 'admin'
+        data_str = request.form.get('profile_data', '').strip()
+        
+        if not data_str:
+            flash('No profile data provided', 'danger')
+            return redirect(url_for('profile'))
+            
+        data = json.loads(data_str)
+        conn = get_db()
+        
+        added = 0
+        updated = 0
+        
+        for item in data:
+            if profile_type == 'student':
+                reg_no = str(item.get('register_number', '')).strip()
+                name = str(item.get('name', '')).strip()
+                class_name = str(item.get('class', '')).strip()
+                section = str(item.get('section', 'A')).strip()
+                
+                # Find class
+                class_rec = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?',
+                                        (f'Class {class_name}', section)).fetchone()
+                if not class_rec:
+                    conn.execute('INSERT INTO classes (class_name, section) VALUES (?, ?)',
+                                (f'Class {class_name}', section))
+                    conn.commit()
+                    class_rec = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?',
+                                            (f'Class {class_name}', section)).fetchone()
+                
+                class_id = class_rec['id']
+                
+                existing = conn.execute('SELECT id FROM students WHERE reg_no = ?', (reg_no,)).fetchone()
+                if existing:
+                    conn.execute('''
+                        UPDATE students SET name = ?, class_id = ?, 
+                        mother_name = ?, mother_phone = ?, father_name = ?, father_phone = ?, 
+                        address = ?, dob = ?, blood_group = ?
+                        WHERE reg_no = ?
+                    ''', (name, class_id, item.get('mother_name'), item.get('mother_phone'), 
+                          item.get('father_name'), item.get('father_phone'), 
+                          item.get('address'), item.get('dob'), item.get('blood_group'), reg_no))
+                    updated += 1
+                else:
+                    conn.execute('''
+                        INSERT INTO students (reg_no, name, class_id, mother_name, mother_phone, 
+                                            father_name, father_phone, address, dob, blood_group)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (reg_no, name, class_id, item.get('mother_name'), item.get('mother_phone'), 
+                          item.get('father_name'), item.get('father_phone'), 
+                          item.get('address'), item.get('dob'), item.get('blood_group')))
+                    added += 1
+                    
+            elif profile_type == 'teacher':
+                name = item.get('name')
+                reg_id = item.get('register_id')
+                main_subject = item.get('main_subject')
+                advisor = item.get('class_advisor')
+                
+                existing = conn.execute('SELECT id FROM teacher_profiles WHERE register_id = ?', (reg_id,)).fetchone()
+                if existing:
+                    conn.execute('UPDATE teacher_profiles SET name = ?, main_subject = ?, class_advisor = ? WHERE register_id = ?',
+                                (name, main_subject, advisor, reg_id))
+                    updated += 1
+                else:
+                    conn.execute('INSERT INTO teacher_profiles (name, register_id, main_subject, class_advisor) VALUES (?, ?, ?, ?)',
+                                (name, reg_id, main_subject, advisor))
+                    added += 1
+                    
+            elif profile_type == 'admin':
+                name = item.get('name')
+                reg_id = item.get('register_id')
+                main_subject = item.get('main_subject')
+                advisor = item.get('class_advisor')
+                role_title = item.get('role')
+                
+                existing = conn.execute('SELECT id FROM admin_profiles WHERE register_id = ?', (reg_id,)).fetchone()
+                if existing:
+                    conn.execute('''
+                        UPDATE admin_profiles SET name = ?, main_subject = ?, class_advisor = ?, role_title = ? 
+                        WHERE register_id = ?
+                    ''', (name, main_subject, advisor, role_title, reg_id))
+                    updated += 1
+                else:
+                    conn.execute('''
+                        INSERT INTO admin_profiles (name, register_id, main_subject, class_advisor, role_title) 
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (name, reg_id, main_subject, advisor, role_title))
+                    added += 1
+        
+        conn.commit()
+        conn.close()
+        flash(f'Successfully processed profiles: {added} added, {updated} updated', 'success')
+        
+    except Exception as e:
+        flash(f'Error uploading profiles: {str(e)}', 'danger')
+        
+    return redirect(url_for('profile'))
+
+@app.route('/timetable')
+@login_required
+def timetable():
+    conn = get_db()
+    classes = conn.execute('SELECT * FROM classes ORDER BY class_name, section').fetchall()
+    
+    class_id = request.args.get('class_id')
+    day = request.args.get('day')
+    
+    timetable_data = []
+    if class_id:
+        query = 'SELECT * FROM timetables WHERE class_id = ?'
+        params = [class_id]
+        if day:
+            query += ' AND day = ?'
+            params.append(day)
+        timetable_data = conn.execute(query, tuple(params)).fetchall()
+        
+    conn.close()
+    return render_template('timetable.html', classes=classes, timetable=timetable_data, 
+                           selected_class_id=class_id)
+
+@app.route('/upload_timetable', methods=['POST'])
+@login_required
+def upload_timetable():
+    if session.get('role') not in ['admin', 'teacher']:
+        abort(403)
+        
+    try:
+        class_id = request.form.get('class_id')
+        day = request.form.get('day')
+        subject = request.form.get('subject')
+        faculty = request.form.get('faculty')
+        
+        if not all([class_id, day, subject, faculty]):
+            flash('All fields are required', 'danger')
+            return redirect(url_for('timetable'))
+            
+        conn = get_db()
+        # Delete existing if same day and subject (or maybe same slot/period, but user didn't specify slot)
+        # Assuming one entry per day per subject for now as per "Each day which subject"
+        conn.execute('INSERT OR REPLACE INTO timetables (class_id, day, subject_name, faculty_name) VALUES (?, ?, ?, ?)',
+                    (class_id, day, subject, faculty))
+        conn.commit()
+        conn.close()
+        flash('Timetable entry saved successfully', 'success')
+    except Exception as e:
+        flash(f'Error saving timetable: {str(e)}', 'danger')
+        
+    return redirect(url_for('timetable'))
+
+@app.route('/delete_timetable/<int:tt_id>', methods=['POST'])
+@login_required
+def delete_timetable(tt_id):
+    if session.get('role') not in ['admin', 'teacher']:
+        abort(403)
+    try:
+        conn = get_db()
+        conn.execute('DELETE FROM timetables WHERE id = ?', (tt_id,))
+        conn.commit()
+        conn.close()
+        flash('Timetable entry deleted', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('timetable'))
 
 # Initialize database on startup
 init_db()

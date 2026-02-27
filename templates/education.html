@@ -45,15 +45,17 @@
             </div>
         </a>
 
-        <!-- Placeholder Cards -->
-        <div
-            style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #2dce89; opacity: 0.9; text-align: center;">
-            <div style="font-size: 56px; margin-bottom: 20px;">📖</div>
-            <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700;">Study Materials</h3>
-            <span
-                style="display: inline-block; padding: 4px 12px; background: #e8f9ee; color: #2dce89; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase;">Coming
-                Soon</span>
-        </div>
+        <!-- Time Table Card -->
+        <a href="{{ url_for('timetable') }}" style="text-decoration: none; display: block;">
+            <div style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #2dce89; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; text-align: center;"
+                onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 40px rgba(45, 206, 137, 0.15)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.05)'">
+                <div style="font-size: 56px; margin-bottom: 20px;">📅</div>
+                <h3 style="color: #32325d; margin: 0 0 12px 0; font-size: 22px; font-weight: 700;">Time Table</h3>
+                <p style="color: #636b7d; margin: 0; font-size: 15px; line-height: 1.6;">View and manage weekly class
+                    schedules</p>
+            </div>
+        </a>
 
         <div
             style="background: white; padding: 35px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 5px solid #11cdef; opacity: 0.9; text-align: center;">

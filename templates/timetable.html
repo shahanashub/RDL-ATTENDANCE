@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <div>
+            <h1 style="margin: 0; font-size: 36px; color: #32325d; font-weight: 800; letter-spacing: -0.5px;">📅 Time
+                Table</h1>
+            <p style="margin: 5px 0 0 0; color: #636b7d; font-size: 16px;">Manage and view class schedules</p>
+        </div>
+        <a href="{{ url_for('education') }}" style="
+            padding: 12px 24px;
+            background: #f4f5f7;
+            color: #525f7f;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        " onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f4f5f7'">🎓 Education
+            Hub</a>
+    </div>
+
+    <!-- Selection Bar -->
+    <div
+        style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px;">
+        <form method="GET" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label
+                    style="display: block; font-weight: 700; color: #32325d; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Select
+                    Class & Section</label>
+                <select name="class_id"
+                    style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cad1d7;" required>
+                    <option value="">-- Choose Class --</option>
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}" {% if selected_class_id|string==cls.id|string %}selected{% endif %}>{{
+                        cls.class_name }} - {{ cls.section }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit"
+                style="padding: 12px 25px; background: #5e72e4; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">🔍
+                View Timetable</button>
+
+            {% if session.role in ['admin', 'teacher'] %}
+            <button type="button" onclick="document.getElementById('uploadPanel').style.display='block'"
+                style="padding: 12px 25px; background: #2dce89; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">➕
+                Add Entry</button>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if session.role in ['admin', 'teacher'] %}
+    <!-- Upload Panel (Hidden by default) -->
+    <div id="uploadPanel"
+        style="display: none; background: #f8f9fe; padding: 30px; border-radius: 12px; margin-bottom: 30px; border: 2px solid #2dce89;">
+        <h3 style="margin-top: 0; margin-bottom: 20px; color: #32325d;">Create Time Table Entry</h3>
+        <form action="{{ url_for('upload_timetable') }}" method="POST"
+            style="display: grid; grid-template-columns: repeat(2, 1fr) auto; gap: 15px; align-items: flex-end;">
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Class ID (from URL
+                    or Selection)</label>
+                <input type="text" name="class_id" value="{{ selected_class_id or '' }}" readonly
+                    style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd; background: #eee;">
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Day</label>
+                <select name="day" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"
+                    required>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                </select>
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Subject</label>
+                <input type="text" name="subject" placeholder="e.g. Physics"
+                    style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;" required>
+            </div>
+            <div>
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px;">Faculty
+                    Name</label>
+                <input type="text" name="faculty" placeholder="e.g. Mr. Smith"
+                    style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;" required>
+            </div>
+            <div style="grid-column: span 3; display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                <button type="button" onclick="document.getElementById('uploadPanel').style.display='none'"
+                    style="padding: 10px 20px; background: #ddd; border: none; border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button type="submit"
+                    style="padding: 10px 30px; background: #2dce89; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer;">Save
+                    Entry</button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Display Table -->
+    {% if timetable %}
+    <div style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f6f9fc; border-bottom: 2px solid #e9ecef;">
+                    <th
+                        style="padding: 15px; text-align: left; color: #8898aa; font-weight: 600; text-transform: uppercase; font-size: 11px;">
+                        Day</th>
+                    <th
+                        style="padding: 15px; text-align: left; color: #8898aa; font-weight: 600; text-transform: uppercase; font-size: 11px;">
+                        Subject</th>
+                    <th
+                        style="padding: 15px; text-align: left; color: #8898aa; font-weight: 600; text-transform: uppercase; font-size: 11px;">
+                        Faculty</th>
+                    {% if session.role in ['admin', 'teacher'] %}
+                    <th
+                        style="padding: 15px; text-align: center; color: #8898aa; font-weight: 600; text-transform: uppercase; font-size: 11px;">
+                        Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in timetable %}
+                <tr style="border-bottom: 1px solid #e9ecef;">
+                    <td style="padding: 15px; font-weight: 700; color: #32325d;">{{ entry.day }}</td>
+                    <td style="padding: 15px; color: #525f7f;">{{ entry.subject_name }}</td>
+                    <td style="padding: 15px; color: #525f7f;">{{ entry.faculty_name }}</td>
+                    {% if session.role in ['admin', 'teacher'] %}
+                    <td style="padding: 15px; text-align: center;">
+                        <form action="{{ url_for('delete_timetable', tt_id=entry.id) }}" method="POST"
+                            onsubmit="return confirm('Delete this entry?')">
+                            <button type="submit"
+                                style="background: none; border: none; color: #f5365c; cursor: pointer; font-size: 16px;">🗑️</button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif selected_class_id %}
+    <div style="text-align: center; padding: 60px; background: #f8f9fe; border-radius: 12px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">📅</div>
+        <h3 style="color: #32325d;">No timetable found for this class</h3>
+        <p style="color: #8898aa;">Select another class or add entries if you are an admin/teacher.</p>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px; background: #f8f9fe; border-radius: 12px;">
+        <div style="font-size: 48px; margin-bottom: 20px;">👋</div>
+        <h3 style="color: #32325d;">Select a class to view its timetable</h3>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

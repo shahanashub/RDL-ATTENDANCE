@@ -1,35 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎓 Scientia - Attendance Management System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fe;
+            margin: 0;
+            color: #32325d;
+        }
+
+        .container {
+            min-height: 100vh;
+        }
+
+        .nav {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #525f7f;
+            font-weight: 600;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #5e72e4;
+        }
+
+        .main-content {
+            padding: 40px 20px;
+        }
+    </style>
 </head>
+
 <body>
     <div class="container">
-        
-                    <div class="flash"></div>
-                
-    
-            <div class="nav">
-                <span>👤<span></span></span>
-                <div>
-                    <a href="{{ url_for('dashboard') }}">🏠 Dashboard</a>
-                    
-                        <a href="{{ url_for('attendance') }}">📊 Attendance</a>
-        
-                    <a href="{{ url_for('logout') }}">🚪 Logout</a>
-                </div>
+        <nav class="nav">
+            <div style="font-weight: 800; font-size: 20px; color: #5e72e4;">🎓 SCIENTIA</div>
+            <div class="nav-links">
+                <a href="{{ url_for('dashboard') }}">🏠 Dashboard</a>
+                {% if session.role in ['admin', 'teacher'] %}
+                <a href="{{ url_for('attendance') }}">📊 Attendance</a>
+                {% endif %}
+                <a href="{{ url_for('history') }}">📜 History</a>
+                <a href="{{ url_for('profile') }}">👤 Profile</a>
+                <a href="{{ url_for('logout') }}" style="color: #f5365c;">🚪 Logout</a>
             </div>
-            <div class="main-container">
-            
-            </div>
+        </nav>
 
+        <div class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div
+                style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background: {{ '#d1edda' if category == 'success' else '#f8d7da' }}; color: {{ '#155724' if category == 'success' else '#721c24' }}; border: 1px solid {{ '#c3e6cb' if category == 'success' else '#f5c6cb' }};">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
     </div>
-    
-    
-        <script src="{{ url_for('static', filename='js/attendance.js') }}"></script>
-    
 </body>
+
 </html>
