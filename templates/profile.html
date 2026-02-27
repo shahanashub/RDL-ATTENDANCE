@@ -63,10 +63,13 @@
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
-                    & Section</label>
-                <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.class_name or 'N/A' }} - {{
-                    profile.section or 'N/A' }}</div>
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class</label>
+                <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.class_name or 'N/A' }}</div>
+            </div>
+            <div>
+                <label
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Section</label>
+                <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.section or 'N/A' }}</div>
             </div>
             <div>
                 <label
@@ -74,42 +77,35 @@
                     of Birth</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.dob or 'N/A' }}</div>
             </div>
-
-            <div style="grid-column: span 2; height: 1px; background: #e9ecef; margin: 10px 0;"></div>
-
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Mother's
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Mother
                     Name</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.mother_name or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Mother's
-                    Contact</label>
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Mother
+                    Phone Number</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.mother_phone or 'N/A' }}
                 </div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Father's
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Father
                     Name</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.father_name or 'N/A' }}</div>
             </div>
             <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Father's
-                    Contact</label>
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Father
+                    Phone Number</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.father_phone or 'N/A' }}
                 </div>
             </div>
-
-            <div style="grid-column: span 2; height: 1px; background: #e9ecef; margin: 10px 0;"></div>
-
-            <div style="grid-column: span 2;">
+            <div>
                 <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Home
-                    Address</label>
+                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Address</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.address or 'N/A' }}</div>
             </div>
             <div>
@@ -117,12 +113,6 @@
                     style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Blood
                     Group</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.blood_group or 'N/A' }}</div>
-            </div>
-            <div>
-                <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Personal
-                    Phone</label>
-                <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.phone or 'N/A' }}</div>
             </div>
         </div>
     </div>
@@ -155,7 +145,7 @@
             <div>
                 <label
                     style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
-                    Advisor For</label>
+                    Advisor</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.class_advisor or 'N/A' }}
                 </div>
             </div>
@@ -196,7 +186,7 @@
             <div>
                 <label
                     style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Class
-                    Advisor For</label>
+                    Advisor</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.class_advisor or 'N/A' }}
                 </div>
             </div>
@@ -206,12 +196,6 @@
                     Role</label>
                 <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.role_title or 'Administrative
                     Head' }}</div>
-            </div>
-            <div>
-                <label
-                    style="display: block; color: #8898aa; font-weight: 700; text-transform: uppercase; font-size: 11px; margin-bottom: 8px;">Phone
-                    Number</label>
-                <div style="font-size: 17px; color: #32325d; font-weight: 600;">{{ profile.phone or 'N/A' }}</div>
             </div>
         </div>
     </div>
