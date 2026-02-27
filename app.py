@@ -92,21 +92,16 @@ def init_db():
         id_type = "SERIAL" if is_postgres else "INTEGER"
         pk_type = "SERIAL PRIMARY KEY" if is_postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
         
-        # Create core tables first
+        # Create users table
         conn.execute(f'''CREATE TABLE IF NOT EXISTS users (
             id {pk_type},
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            role TEXT NOT NULL
+            role TEXT NOT NULL,
+            phone TEXT
         )''')
-        
-        conn.execute(f'''CREATE TABLE IF NOT EXISTS classes (
-            id {pk_type},
-            class_name TEXT NOT NULL,
-            section TEXT NOT NULL,
-            UNIQUE(class_name, section)
-        )''')
-        
+
+        # Create students table
         conn.execute(f'''CREATE TABLE IF NOT EXISTS students (
             id {pk_type},
             reg_no TEXT UNIQUE NOT NULL,
@@ -120,26 +115,31 @@ def init_db():
             address TEXT,
             dob TEXT,
             blood_group TEXT,
+            phone TEXT,
             FOREIGN KEY (class_id) REFERENCES classes (id),
             FOREIGN KEY (user_id) REFERENCES users (id)
         )''')
-        conn.commit() # Commit core tables
 
-        # Optional migrations for existing students table
-        new_student_cols = [
-            ('mother_name', 'TEXT'), ('mother_phone', 'TEXT'),
-            ('father_name', 'TEXT'), ('father_phone', 'TEXT'),
-            ('address', 'TEXT'), ('dob', 'TEXT'), ('blood_group', 'TEXT')
+        # Simple migration for existing tables
+        new_cols = [
+            ('users', 'phone', 'TEXT'),
+            ('students', 'phone', 'TEXT'),
+            ('students', 'mother_name', 'TEXT'), ('students', 'mother_phone', 'TEXT'),
+            ('students', 'father_name', 'TEXT'), ('students', 'father_phone', 'TEXT'),
+            ('students', 'address', 'TEXT'), ('students', 'dob', 'TEXT'), ('students', 'blood_group', 'TEXT'),
+            ('teacher_profiles', 'phone', 'TEXT'),
+            ('admin_profiles', 'phone', 'TEXT'),
+            ('teacher_profiles', 'user_id', 'INTEGER'),
+            ('admin_profiles', 'user_id', 'INTEGER')
         ]
         
-        for col_name, col_type in new_student_cols:
+        for table, col_name, col_type in new_cols:
             try:
                 if isinstance(conn, PostgresWrapper):
-                    # Use a separate try/except or savepoint for each column
-                    conn.execute(f"ALTER TABLE students ADD COLUMN IF NOT EXISTS {col_name} {col_type}")
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col_name} {col_type}")
                     conn.commit() 
                 else:
-                    conn.execute(f"ALTER TABLE students ADD COLUMN {col_name} {col_type}")
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}")
                     conn.commit()
             except Exception:
                 if isinstance(conn, PostgresWrapper):
@@ -177,6 +177,7 @@ def init_db():
             register_id TEXT UNIQUE NOT NULL,
             main_subject TEXT,
             class_advisor TEXT,
+            phone TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )''')
 
@@ -189,6 +190,7 @@ def init_db():
             main_subject TEXT,
             class_advisor TEXT,
             role_title TEXT,
+            phone TEXT,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )''')
 
@@ -322,6 +324,7 @@ def register():
             role = request.form['role'].strip()
             register_no = request.form.get('register_no', '').strip()
             user_class = request.form.get('class', '').strip()
+            phone = request.form.get('phone', '').strip()
             
             if not username or not password_input:
                 flash('Username and password are required', 'danger')
@@ -332,8 +335,8 @@ def register():
             conn = get_db()
             
             # Insert user
-            conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', 
-                        (username, password, role))
+            conn.execute('INSERT INTO users (username, password, role, phone) VALUES (?, ?, ?, ?)', 
+                        (username, password, role, phone))
             conn.commit()
             
             # Get the newly created user
@@ -361,31 +364,31 @@ def register():
                 # Check if student record with this reg_no already exists (uploaded by admin)
                 existing_student = conn.execute('SELECT id FROM students WHERE reg_no = ?', (register_no,)).fetchone()
                 if existing_student:
-                    conn.execute('UPDATE students SET user_id = ?, name = ?, class_id = ? WHERE reg_no = ?',
-                               (user['id'], username, class_id, register_no))
+                    conn.execute('UPDATE students SET user_id = ?, name = ?, class_id = ?, phone = ? WHERE reg_no = ?',
+                               (user['id'], username, class_id, phone, register_no))
                 else:
-                    conn.execute('INSERT INTO students (reg_no, name, class_id, user_id) VALUES (?, ?, ?, ?)',
-                               (register_no, username, class_id, user['id']))
+                    conn.execute('INSERT INTO students (reg_no, name, class_id, user_id, phone) VALUES (?, ?, ?, ?, ?)',
+                               (register_no, username, class_id, user['id'], phone))
                 conn.commit()
             
             elif role == 'teacher' and register_no:
                 existing_teacher = conn.execute('SELECT id FROM teacher_profiles WHERE register_id = ?', (register_no,)).fetchone()
                 if existing_teacher:
-                    conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ? WHERE register_id = ?',
-                               (user['id'], username, register_no))
+                    conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
+                               (user['id'], username, phone, register_no))
                 else:
-                    conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id) VALUES (?, ?, ?)',
-                               (user['id'], username, register_no))
+                    conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
+                               (user['id'], username, register_no, phone))
                 conn.commit()
                 
             elif role == 'admin' and register_no:
                 existing_admin = conn.execute('SELECT id FROM admin_profiles WHERE register_id = ?', (register_no,)).fetchone()
                 if existing_admin:
-                    conn.execute('UPDATE admin_profiles SET user_id = ?, name = ? WHERE register_id = ?',
-                               (user['id'], username, register_no))
+                    conn.execute('UPDATE admin_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
+                               (user['id'], username, phone, register_no))
                 else:
-                    conn.execute('INSERT INTO admin_profiles (user_id, name, register_id) VALUES (?, ?, ?)',
-                               (user['id'], username, register_no))
+                    conn.execute('INSERT INTO admin_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
+                               (user['id'], username, register_no, phone))
                 conn.commit()
             
             conn.close()
@@ -400,7 +403,8 @@ def register():
             return redirect(url_for('dashboard'))
             
         except IntegrityErrors as e:
-            conn.close()
+            if 'conn' in locals():
+                conn.close()
             error_msg = str(e).lower()
             if 'username' in error_msg:
                 flash('Username already exists. Please choose a different username.', 'danger')
