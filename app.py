@@ -433,11 +433,17 @@ def admin_create_user():
     if session.get('role') != 'admin':
         abort(403)
     try:
-        username = request.form['username'].strip()
-        password_input = request.form['password'].strip()
         role = request.form['role'].strip()
         register_no = request.form.get('register_no', '').strip()
         phone = request.form.get('phone', '').strip()
+        
+        # Username and password are now derived from register_no
+        if not register_no:
+            flash('Register Number is required', 'danger')
+            return redirect(url_for('profile'))
+            
+        username = register_no
+        password_input = register_no # Default password is the register number
         
         # New fields from expanded form
         full_name = request.form.get('full_name', username).strip()
@@ -450,10 +456,6 @@ def admin_create_user():
         father_phone = request.form.get('father_phone', '').strip()
         address = request.form.get('address', '').strip()
         blood_group = request.form.get('blood_group', '').strip()
-        
-        if not username or not password_input:
-            flash('Username and password are required', 'danger')
-            return redirect(url_for('profile'))
         
         password = hashlib.sha256(password_input.encode()).hexdigest()
         conn = get_db()
