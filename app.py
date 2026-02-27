@@ -438,7 +438,18 @@ def admin_create_user():
         role = request.form['role'].strip()
         register_no = request.form.get('register_no', '').strip()
         phone = request.form.get('phone', '').strip()
+        
+        # New fields from expanded form
+        full_name = request.form.get('full_name', username).strip()
         user_class = request.form.get('class', '').strip()
+        section = request.form.get('section', 'A').strip()
+        dob = request.form.get('dob', '').strip()
+        mother_name = request.form.get('mother_name', '').strip()
+        mother_phone = request.form.get('mother_phone', '').strip()
+        father_name = request.form.get('father_name', '').strip()
+        father_phone = request.form.get('father_phone', '').strip()
+        address = request.form.get('address', '').strip()
+        blood_group = request.form.get('blood_group', '').strip()
         
         if not username or not password_input:
             flash('Username and password are required', 'danger')
@@ -456,46 +467,55 @@ def admin_create_user():
         
         # Link profile
         if role == 'student' and register_no:
-            class_parts = user_class.split('-') if '-' in user_class else user_class.split()
-            class_name = class_parts[0].strip() if class_parts else ''
-            section = class_parts[1].strip() if len(class_parts) > 1 else 'A'
+            # Handle class/section linking
             class_id = None
-            if class_name:
+            if user_class:
+                # Ensure class name starts with "Class " for consistency if it's just a number
+                db_class_name = user_class if user_class.lower().startswith('class') else f"Class {user_class}"
                 class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
-                                        (f'Class {class_name}', section)).fetchone()
+                                        (db_class_name, section)).fetchone()
                 if not class_row:
                     conn.execute('INSERT INTO classes (class_name, section) VALUES (?, ?)', 
-                               (f'Class {class_name}', section))
+                               (db_class_name, section))
                     conn.commit()
                     class_row = conn.execute('SELECT id FROM classes WHERE class_name = ? AND section = ?', 
-                                           (f'Class {class_name}', section)).fetchone()
+                                           (db_class_name, section)).fetchone()
                 class_id = class_row['id'] if class_row else None
 
             existing = conn.execute('SELECT id FROM students WHERE reg_no = ?', (register_no,)).fetchone()
             if existing:
-                conn.execute('UPDATE students SET user_id = ?, name = ?, class_id = ?, phone = ? WHERE reg_no = ?',
-                           (user['id'], username, class_id, phone, register_no))
+                conn.execute('''
+                    UPDATE students SET user_id = ?, name = ?, class_id = ?, phone = ?,
+                    dob = ?, mother_name = ?, mother_phone = ?, father_name = ?,
+                    father_phone = ?, address = ?, blood_group = ?
+                    WHERE reg_no = ?
+                ''', (user['id'], full_name, class_id, phone, dob, mother_name, mother_phone, 
+                      father_name, father_phone, address, blood_group, register_no))
             else:
-                conn.execute('INSERT INTO students (reg_no, name, class_id, user_id, phone) VALUES (?, ?, ?, ?, ?)',
-                           (register_no, username, class_id, user['id'], phone))
+                conn.execute('''
+                    INSERT INTO students (reg_no, name, class_id, user_id, phone, dob, 
+                    mother_name, mother_phone, father_name, father_phone, address, blood_group) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (register_no, full_name, class_id, user['id'], phone, dob, 
+                      mother_name, mother_phone, father_name, father_phone, address, blood_group))
         
         elif role == 'teacher' and register_no:
             existing = conn.execute('SELECT id FROM teacher_profiles WHERE register_id = ?', (register_no,)).fetchone()
             if existing:
                 conn.execute('UPDATE teacher_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
-                           (user['id'], username, phone, register_no))
+                           (user['id'], full_name, phone, register_no))
             else:
                 conn.execute('INSERT INTO teacher_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
-                           (user['id'], username, register_no, phone))
+                           (user['id'], full_name, register_no, phone))
         
         elif role == 'admin' and register_no:
             existing = conn.execute('SELECT id FROM admin_profiles WHERE register_id = ?', (register_no,)).fetchone()
             if existing:
                 conn.execute('UPDATE admin_profiles SET user_id = ?, name = ?, phone = ? WHERE register_id = ?',
-                           (user['id'], username, phone, register_no))
+                           (user['id'], full_name, phone, register_no))
             else:
                 conn.execute('INSERT INTO admin_profiles (user_id, name, register_id, phone) VALUES (?, ?, ?, ?)',
-                           (user['id'], username, register_no, phone))
+                           (user['id'], full_name, register_no, phone))
         
         conn.commit()
         conn.close()
@@ -1427,6 +1447,19 @@ def profile():
             profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE user_id = ?', (user_id,)).fetchone()
         elif role == 'admin':
             profile_data = conn.execute('SELECT * FROM admin_profiles WHERE user_id = ?', (user_id,)).fetchone()
+            # Fetch all profiles for management
+            students = conn.execute('''
+                SELECT s.*, c.class_name, c.section 
+                FROM students s 
+                LEFT JOIN classes c ON s.class_id = c.id
+                ORDER BY s.name
+            ''').fetchall()
+            teachers = conn.execute('SELECT * FROM teacher_profiles ORDER BY name').fetchall()
+            admins = conn.execute('SELECT * FROM admin_profiles ORDER BY name').fetchall()
+            
+            conn.close()
+            return render_template('profile.html', profile=profile_data, 
+                                 all_students=students, all_teachers=teachers, all_admins=admins)
             
         conn.close()
         return render_template('profile.html', profile=profile_data)
@@ -1438,6 +1471,60 @@ def profile():
                 pass
         flash(f'Profile Error: {str(e)}', 'danger')
         return redirect(url_for('dashboard'))
+
+@app.route('/admin/edit_profile', methods=['POST'])
+@login_required
+def admin_edit_profile():
+    if session.get('role') != 'admin':
+        abort(403)
+    try:
+        role = request.form.get('role').strip()
+        reg_no = request.form.get('register_no').strip()
+        name = request.form.get('name').strip()
+        phone = request.form.get('phone', '').strip()
+        
+        conn = get_db()
+        
+        if role == 'student':
+            mother_name = request.form.get('mother_name', '').strip()
+            mother_phone = request.form.get('mother_phone', '').strip()
+            father_name = request.form.get('father_name', '').strip()
+            father_phone = request.form.get('father_phone', '').strip()
+            address = request.form.get('address', '').strip()
+            dob = request.form.get('dob', '').strip()
+            blood_group = request.form.get('blood_group', '').strip()
+            
+            conn.execute('''
+                UPDATE students SET name = ?, mother_name = ?, mother_phone = ?, 
+                father_name = ?, father_phone = ?, address = ?, dob = ?, 
+                blood_group = ?, phone = ? WHERE reg_no = ?
+            ''', (name, mother_name, mother_phone, father_name, father_phone, address, dob, blood_group, phone, reg_no))
+            
+        elif role == 'teacher':
+            main_subject = request.form.get('main_subject', '').strip()
+            class_advisor = request.form.get('class_advisor', '').strip()
+            
+            conn.execute('''
+                UPDATE teacher_profiles SET name = ?, main_subject = ?, 
+                class_advisor = ?, phone = ? WHERE register_id = ?
+            ''', (name, main_subject, class_advisor, phone, reg_no))
+            
+        elif role == 'admin':
+            main_subject = request.form.get('main_subject', '').strip()
+            class_advisor = request.form.get('class_advisor', '').strip()
+            role_title = request.form.get('role_title', '').strip()
+            
+            conn.execute('''
+                UPDATE admin_profiles SET name = ?, main_subject = ?, 
+                class_advisor = ?, role_title = ?, phone = ? WHERE register_id = ?
+            ''', (name, main_subject, class_advisor, role_title, phone, reg_no))
+            
+        conn.commit()
+        conn.close()
+        flash(f'Profile for {name} updated successfully', 'success')
+    except Exception as e:
+        flash(f'Update Error: {str(e)}', 'danger')
+    return redirect(url_for('profile'))
 
 @app.route('/upload_profiles', methods=['POST'])
 @login_required

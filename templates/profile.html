@@ -210,7 +210,6 @@
             <h3
                 style="color: white; margin-top: 0; margin-bottom: 25px; text-align: center; letter-spacing: 1px; font-size: 20px;">
                 👤 MANUAL USER ENTRY</h3>
-
             <form action="{{ url_for('admin_create_user') }}" method="POST">
                 <style>
                     .ref-form-group {
@@ -257,47 +256,355 @@
                         background: #d4c474;
                     }
                 </style>
-
+                <div class="ref-form-group">
+                    <label class="ref-label">Full Name</label>
+                    <input type="text" name="full_name" class="ref-input" placeholder="Full legal name" required>
+                </div>
                 <div class="ref-form-group">
                     <label class="ref-label">Username</label>
                     <input type="text" name="username" class="ref-input" placeholder="xxxxxxxxxx" required>
                 </div>
-
                 <div class="ref-form-group">
                     <label class="ref-label">Password</label>
                     <input type="password" name="password" class="ref-input" placeholder="xxxxxxxxxx" required>
                 </div>
-
                 <div class="ref-form-group">
                     <label class="ref-label">Register.No</label>
                     <input type="text" name="register_no" class="ref-input" placeholder="xxxxxxxxxx" required>
                 </div>
-
                 <div class="ref-form-group">
                     <label class="ref-label">Phone.No</label>
                     <input type="text" name="phone" class="ref-input" placeholder="xxxxxxxxxx">
                 </div>
-
                 <div class="ref-form-group">
                     <label class="ref-label">Role</label>
-                    <select name="role" class="ref-input" style="cursor: pointer;"
-                        onchange="document.getElementById('ref-class-group').style.display = this.value === 'student' ? 'flex' : 'none'">
+                    <select name="role" id="manual-role-selector" class="ref-input" style="cursor: pointer;"
+                        onchange="updateManualEntryFields(this.value)">
                         <option value="student">Student</option>
                         <option value="teacher">Teacher</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
 
-                <div class="ref-form-group" id="ref-class-group">
-                    <label class="ref-label">Class</label>
-                    <input type="text" name="class" class="ref-input" placeholder="e.g. 10-A">
+                <!-- Expanded Student Fields -->
+                <div id="manual-student-extra" style="display: block;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="ref-form-group">
+                            <label class="ref-label">Class</label>
+                            <input type="text" name="class" class="ref-input" placeholder="e.g. 10">
+                        </div>
+                        <div class="ref-form-group">
+                            <label class="ref-label" style="flex: 0 0 80px;">Section</label>
+                            <input type="text" name="section" class="ref-input" placeholder="e.g. A">
+                        </div>
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Date of Birth</label>
+                        <input type="text" name="dob" class="ref-input" placeholder="YYYY-MM-DD">
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Mother Name</label>
+                        <input type="text" name="mother_name" class="ref-input" placeholder="Mother's name">
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Mother Ph.</label>
+                        <input type="text" name="mother_phone" class="ref-input" placeholder="xxxxxxxxxx">
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Father Name</label>
+                        <input type="text" name="father_name" class="ref-input" placeholder="Father's name">
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Father Ph.</label>
+                        <input type="text" name="father_phone" class="ref-input" placeholder="xxxxxxxxxx">
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Address</label>
+                        <input type="text" name="address" class="ref-input" placeholder="Full address">
+                    </div>
+                    <div class="ref-form-group">
+                        <label class="ref-label">Blood Group</label>
+                        <input type="text" name="blood_group" class="ref-input" placeholder="e.g. O+">
+                    </div>
                 </div>
 
+                <script>
+                    function updateManualEntryFields(role) {
+                        const extraFields = document.getElementById('manual-student-extra');
+                        if (role === 'student') {
+                            extraFields.style.display = 'block';
+                        } else {
+                            extraFields.style.display = 'none';
+                        }
+                    }
+                    // Initialize
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const selector = document.getElementById('manual-role-selector');
+                        if (selector) updateManualEntryFields(selector.value);
+                    });
+                </script>
                 <button type="submit" class="ref-btn">SUBMIT USER</button>
             </form>
         </div>
     </div>
 
+    <!-- PROFILES DATABASE & EDITING SECTION -->
+    <div
+        style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(50,50,93,0.1); border-top: 6px solid #fb6340; margin-bottom: 40px;">
+        <h3 style="margin-top: 0; margin-bottom: 25px; color: #32325d; font-size: 20px;">📂 PROFILES DATABASE</h3>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button onclick="showTab('students')" class="tab-btn active" id="btn-students">Students</button>
+            <button onclick="showTab('teachers')" class="tab-btn" id="btn-teachers">Teachers</button>
+            <button onclick="showTab('admins')" class="tab-btn" id="btn-admins">Admins</button>
+        </div>
+
+        <style>
+            .tab-btn {
+                padding: 10px 20px;
+                border-radius: 8px;
+                border: 1px solid #e9ecef;
+                background: #f8f9fe;
+                color: #8898aa;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .tab-btn.active {
+                background: #fb6340;
+                color: white;
+                border-color: #fb6340;
+            }
+
+            .profile-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+                font-size: 14px;
+            }
+
+            .profile-table th {
+                text-align: left;
+                padding: 12px;
+                background: #f8f9fe;
+                color: #8898aa;
+                text-transform: uppercase;
+                font-size: 11px;
+            }
+
+            .profile-table td {
+                padding: 12px;
+                border-bottom: 1px solid #e9ecef;
+                color: #525f7f;
+                border-top: none;
+            }
+
+            .edit-btn {
+                padding: 6px 12px;
+                border-radius: 4px;
+                background: #11cdef;
+                color: white;
+                border: none;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+        </style>
+
+        <div id="tab-students" class="tab-content">
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Reg.No</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in all_students %}
+                    <tr data-profile-json='{{ s|tojson|safe }}'>
+                        <td>{{ s.reg_no }}</td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.class_name }} {{ s.section }}</td>
+                        <td><button class="edit-btn" onclick='editProfileFromRow(this, "student")'>EDIT</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tab-teachers" class="tab-content" style="display: none;">
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Reg.ID</th>
+                        <th>Name</th>
+                        <th>Subject</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in all_teachers %}
+                    <tr data-profile-json='{{ t|tojson|safe }}'>
+                        <td>{{ t.register_id }}</td>
+                        <td>{{ t.name }}</td>
+                        <td>{{ t.main_subject }}</td>
+                        <td><button class="edit-btn" onclick='editProfileFromRow(this, "teacher")'>EDIT</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tab-admins" class="tab-content" style="display: none;">
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Reg.ID</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in all_admins %}
+                    <tr data-profile-json='{{ a|tojson|safe }}'>
+                        <td>{{ a.register_id }}</td>
+                        <td>{{ a.name }}</td>
+                        <td>{{ a.role_title }}</td>
+                        <td><button class="edit-btn" onclick='editProfileFromRow(this, "admin")'>EDIT</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Dynamic Edit Form -->
+        <div id="edit-section"
+            style="display: none; margin-top: 40px; padding-top: 30px; border-top: 2px dashed #e9ecef;">
+            <h4 id="edit-title" style="color: #32325d; margin-bottom: 20px;">Editing Profile</h4>
+            <form action="{{ url_for('admin_edit_profile') }}" method="POST">
+                <input type="hidden" name="role" id="edit-role">
+                <input type="hidden" name="register_no" id="edit-reg-no">
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Full
+                            Name</label>
+                        <input type="text" name="name" id="edit-name"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;">
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Phone
+                            Number</label>
+                        <input type="text" name="phone" id="edit-phone"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;">
+                    </div>
+
+                    <div class="student-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Mother
+                            Name</label><input type="text" name="mother_name" id="edit-mother-name"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                    <div class="student-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Mother
+                            Phone</label><input type="text" name="mother_phone" id="edit-mother-phone"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                    <div class="student-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Father
+                            Name</label><input type="text" name="father_name" id="edit-father-name"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                    <div class="student-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Father
+                            Phone</label><input type="text" name="father_phone" id="edit-father-phone"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                    <div class="student-fields" style="grid-column: span 2;"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Address</label><textarea
+                            name="address" id="edit-address"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef; height: 60px;"></textarea>
+                    </div>
+                    <div class="student-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Date
+                            of Birth</label><input type="text" name="dob" id="edit-dob" placeholder="YYYY-MM-DD"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                    <div class="student-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Blood
+                            Group</label><input type="text" name="blood_group" id="edit-blood-group"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+
+                    <div class="staff-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Main
+                            Subject</label><input type="text" name="main_subject" id="edit-subject"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                    <div class="staff-fields"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Class
+                            Advisor</label><input type="text" name="class_advisor" id="edit-advisor"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                    <div class="admin-fields" style="grid-column: span 2;"><label
+                            style="display: block; font-size: 12px; font-weight: 700; color: #8898aa; margin-bottom: 5px;">Official
+                            Role Title</label><input type="text" name="role_title" id="edit-role-title"
+                            style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e9ecef;"></div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit"
+                        style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #fb6340; color: white; font-weight: 700; cursor: pointer;">SAVE
+                        CHANGES</button>
+                    <button type="button" onclick="document.getElementById('edit-section').style.display='none'"
+                        style="padding: 12px 20px; border-radius: 8px; border: 1px solid #e9ecef; background: white; color: #8898aa; font-weight: 700; cursor: pointer;">CANCEL</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabName).style.display = 'block';
+            document.getElementById('btn-' + tabName).classList.add('active');
+            document.getElementById('edit-section').style.display = 'none';
+        }
+
+        function editProfileFromRow(btn, role) {
+            const row = btn.closest('tr');
+            const data = JSON.parse(row.getAttribute('data-profile-json'));
+            editProfile(role, data);
+        }
+
+        function editProfile(role, data) {
+            document.getElementById('edit-section').style.display = 'block';
+            document.getElementById('edit-role').value = role;
+            document.getElementById('edit-reg-no').value = data.reg_no || data.register_id;
+            document.getElementById('edit-name').value = data.name || '';
+            document.getElementById('edit-phone').value = data.phone || '';
+            document.getElementById('edit-title').innerText = "Editing " + role.charAt(0).toUpperCase() + role.slice(1) + " Profile: " + (data.reg_no || data.register_id);
+
+            document.querySelectorAll('.student-fields').forEach(f => f.style.display = (role === 'student' ? 'block' : 'none'));
+            document.querySelectorAll('.staff-fields').forEach(f => f.style.display = (role === 'teacher' || role === 'admin' ? 'block' : 'none'));
+            document.querySelectorAll('.admin-fields').forEach(f => f.style.display = (role === 'admin' ? 'block' : 'none'));
+
+            if (role === 'student') {
+                document.getElementById('edit-mother-name').value = data.mother_name || '';
+                document.getElementById('edit-mother-phone').value = data.mother_phone || '';
+                document.getElementById('edit-father-name').value = data.father_name || '';
+                document.getElementById('edit-father-phone').value = data.father_phone || '';
+                document.getElementById('edit-address').value = data.address || '';
+                document.getElementById('edit-dob').value = data.dob || '';
+                document.getElementById('edit-blood-group').value = data.blood_group || '';
+            } else {
+                document.getElementById('edit-subject').value = data.main_subject || '';
+                document.getElementById('edit-advisor').value = data.class_advisor || '';
+                if (role === 'admin') {
+                    document.getElementById('edit-role-title').value = data.role_title || '';
+                }
+            }
+            window.scrollTo({ top: document.getElementById('edit-section').offsetTop - 100, behavior: 'smooth' });
+        }
+    </script>
     {% endif %}
 </div>
 {% endblock %}
