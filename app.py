@@ -92,7 +92,7 @@ def init_db():
         id_type = "SERIAL" if is_postgres else "INTEGER"
         pk_type = "SERIAL PRIMARY KEY" if is_postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
         
-        # Create users table
+        # Create core tables first
         conn.execute(f'''CREATE TABLE IF NOT EXISTS users (
             id {pk_type},
             username TEXT UNIQUE NOT NULL,
@@ -100,7 +100,6 @@ def init_db():
             role TEXT NOT NULL
         )''')
         
-        # Create classes table
         conn.execute(f'''CREATE TABLE IF NOT EXISTS classes (
             id {pk_type},
             class_name TEXT NOT NULL,
@@ -108,7 +107,6 @@ def init_db():
             UNIQUE(class_name, section)
         )''')
         
-        # Create students table
         conn.execute(f'''CREATE TABLE IF NOT EXISTS students (
             id {pk_type},
             reg_no TEXT UNIQUE NOT NULL,
@@ -125,8 +123,9 @@ def init_db():
             FOREIGN KEY (class_id) REFERENCES classes (id),
             FOREIGN KEY (user_id) REFERENCES users (id)
         )''')
+        conn.commit() # Commit core tables
 
-        # Simple migration for existing tables
+        # Optional migrations for existing students table
         new_student_cols = [
             ('mother_name', 'TEXT'), ('mother_phone', 'TEXT'),
             ('father_name', 'TEXT'), ('father_phone', 'TEXT'),
@@ -135,15 +134,17 @@ def init_db():
         
         for col_name, col_type in new_student_cols:
             try:
-                # Postgres supports ADD COLUMN IF NOT EXISTS in 9.6+
                 if isinstance(conn, PostgresWrapper):
+                    # Use a separate try/except or savepoint for each column
                     conn.execute(f"ALTER TABLE students ADD COLUMN IF NOT EXISTS {col_name} {col_type}")
+                    conn.commit() 
                 else:
                     conn.execute(f"ALTER TABLE students ADD COLUMN {col_name} {col_type}")
+                    conn.commit()
             except Exception:
-                # For SQLite or older Postgres, catch if column already exists
                 if isinstance(conn, PostgresWrapper):
-                    conn.conn.rollback() # Reset transaction state if failed
+                    try: conn.conn.rollback()
+                    except: pass
                 pass
         
         # Create subjects table
@@ -237,6 +238,9 @@ def init_db():
             class_id INTEGER NOT NULL,
             FOREIGN KEY (class_id) REFERENCES classes (id)
         )''')
+        
+        # Explicit commit for all table creations
+        conn.commit()
         
         # Insert sample data if tables are empty
         user_count_res = conn.fetchone('SELECT COUNT(*) as count FROM users')
@@ -1313,25 +1317,34 @@ def update_fee_record():
 @app.route('/profile')
 @login_required
 def profile():
-    role = session.get('role')
-    user_id = session.get('user_id')
-    conn = get_db()
-    profile_data = None
-    
-    if role == 'student':
-        profile_data = conn.execute('''
-            SELECT s.*, c.class_name, c.section 
-            FROM students s 
-            LEFT JOIN classes c ON s.class_id = c.id 
-            WHERE s.user_id = ?
-        ''', (user_id,)).fetchone()
-    elif role == 'teacher':
-        profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE user_id = ?', (user_id,)).fetchone()
-    elif role == 'admin':
-        profile_data = conn.execute('SELECT * FROM admin_profiles WHERE user_id = ?', (user_id,)).fetchone()
+    try:
+        role = session.get('role')
+        user_id = session.get('user_id')
+        conn = get_db()
+        profile_data = None
         
-    conn.close()
-    return render_template('profile.html', profile=profile_data)
+        if role == 'student':
+            profile_data = conn.execute('''
+                SELECT s.*, c.class_name, c.section 
+                FROM students s 
+                LEFT JOIN classes c ON s.class_id = c.id 
+                WHERE s.user_id = ?
+            ''', (user_id,)).fetchone()
+        elif role == 'teacher':
+            profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE user_id = ?', (user_id,)).fetchone()
+        elif role == 'admin':
+            profile_data = conn.execute('SELECT * FROM admin_profiles WHERE user_id = ?', (user_id,)).fetchone()
+            
+        conn.close()
+        return render_template('profile.html', profile=profile_data)
+    except Exception as e:
+        if 'conn' in locals():
+            try:
+                conn.close()
+            except:
+                pass
+        flash(f'Profile Error: {str(e)}', 'danger')
+        return redirect(url_for('dashboard'))
 
 @app.route('/upload_profiles', methods=['POST'])
 @login_required
