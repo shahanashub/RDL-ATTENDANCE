@@ -1521,25 +1521,38 @@ def profile():
                 WHERE s.user_id = ?
             ''', (user_id,)).fetchone()
             
-            # Fallback for unlinked but named profiles
             if not profile_data:
-                profile_data = conn.execute('''
-                    SELECT s.*, c.class_name, c.section 
-                    FROM students s 
-                    LEFT JOIN classes c ON s.class_id = c.id 
-                    WHERE s.reg_no = ?
-                ''', (session.get('username'),)).fetchone()
+                # Self-healing: Find by reg_no and link
+                found = conn.execute('SELECT id FROM students WHERE LOWER(reg_no) = LOWER(?)', (session.get('username'),)).fetchone()
+                if found:
+                    conn.execute('UPDATE students SET user_id = ? WHERE id = ?', (user_id, found['id']))
+                    conn.commit()
+                    profile_data = conn.execute('''
+                        SELECT s.*, c.class_name, c.section 
+                        FROM students s 
+                        LEFT JOIN classes c ON s.class_id = c.id 
+                        WHERE s.id = ?
+                    ''', (found['id'],)).fetchone()
                 
         elif role == 'teacher':
             profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE user_id = ?', (user_id,)).fetchone()
             if not profile_data:
-                profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE register_id = ?', (session.get('username'),)).fetchone()
+                found = conn.execute('SELECT id FROM teacher_profiles WHERE LOWER(register_id) = LOWER(?)', (session.get('username'),)).fetchone()
+                if found:
+                    conn.execute('UPDATE teacher_profiles SET user_id = ? WHERE id = ?', (user_id, found['id']))
+                    conn.commit()
+                    profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE id = ?', (found['id'],)).fetchone()
                 
         elif role == 'admin':
             profile_data = conn.execute('SELECT * FROM admin_profiles WHERE user_id = ?', (user_id,)).fetchone()
             if not profile_data:
-                profile_data = conn.execute('SELECT * FROM admin_profiles WHERE register_id = ?', (session.get('username'),)).fetchone()
-            # Fetch all profiles for management
+                found = conn.execute('SELECT id FROM admin_profiles WHERE LOWER(register_id) = LOWER(?)', (session.get('username'),)).fetchone()
+                if found:
+                    conn.execute('UPDATE admin_profiles SET user_id = ? WHERE id = ?', (user_id, found['id']))
+                    conn.commit()
+                    profile_data = conn.execute('SELECT * FROM admin_profiles WHERE id = ?', (found['id'],)).fetchone()
+            
+            # Fetch all profiles for management (Admin only)
             students = conn.execute('''
                 SELECT s.*, c.class_name, c.section 
                 FROM students s 
