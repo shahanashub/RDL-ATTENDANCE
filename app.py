@@ -1520,10 +1520,25 @@ def profile():
                 LEFT JOIN classes c ON s.class_id = c.id 
                 WHERE s.user_id = ?
             ''', (user_id,)).fetchone()
+            
+            # Fallback for unlinked but named profiles
+            if not profile_data:
+                profile_data = conn.execute('''
+                    SELECT s.*, c.class_name, c.section 
+                    FROM students s 
+                    LEFT JOIN classes c ON s.class_id = c.id 
+                    WHERE s.reg_no = ?
+                ''', (session.get('username'),)).fetchone()
+                
         elif role == 'teacher':
             profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE user_id = ?', (user_id,)).fetchone()
+            if not profile_data:
+                profile_data = conn.execute('SELECT * FROM teacher_profiles WHERE register_id = ?', (session.get('username'),)).fetchone()
+                
         elif role == 'admin':
             profile_data = conn.execute('SELECT * FROM admin_profiles WHERE user_id = ?', (user_id,)).fetchone()
+            if not profile_data:
+                profile_data = conn.execute('SELECT * FROM admin_profiles WHERE register_id = ?', (session.get('username'),)).fetchone()
             # Fetch all profiles for management
             students = conn.execute('''
                 SELECT s.*, c.class_name, c.section 
