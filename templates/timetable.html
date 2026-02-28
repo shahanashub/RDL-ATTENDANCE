@@ -141,6 +141,24 @@
     <!-- Display Table -->
     {% if timetable %}
     <div style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+
+        <!-- Class Header with Advisor -->
+        <div
+            style="padding: 20px 25px; background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%); color: white; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <h3 style="margin: 0; font-size: 18px; font-weight: 700;">📅 Timetable: {{ selected_class_name }} —
+                    Section {{ selected_section }}</h3>
+            </div>
+            <div
+                style="background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+                {% if class_advisor_name %}
+                👨‍🏫 Class Advisor: {{ class_advisor_name }}
+                {% else %}
+                👨‍🏫 Class Advisor: Not Assigned
+                {% endif %}
+            </div>
+        </div>
+
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #f6f9fc; border-bottom: 2px solid #e9ecef;">

@@ -1760,6 +1760,7 @@ def timetable():
             class_id = cls_match['id']
             
     timetable_data = []
+    class_advisor_name = None
     if class_id:
         timetable_data = conn.execute('''
             SELECT * FROM timetables 
@@ -1774,12 +1775,29 @@ def timetable():
                 ELSE 7 END
         ''', (class_id,)).fetchall()
         
+        # Find the class advisor for this class
+        if selected_class_name and selected_section:
+            class_label = f"{selected_class_name} {selected_section}"
+            advisor_row = conn.execute('''
+                SELECT name FROM teacher_profiles 
+                WHERE LOWER(class_advisor) = LOWER(?)
+            ''', (class_label,)).fetchone()
+            if not advisor_row:
+                # try just class_name
+                advisor_row = conn.execute('''
+                    SELECT name FROM teacher_profiles 
+                    WHERE LOWER(class_advisor) = LOWER(?)
+                ''', (selected_class_name,)).fetchone()
+            if advisor_row:
+                class_advisor_name = advisor_row['name']
+        
     conn.close()
     return render_template('timetable.html', classes=classes, class_names=class_names, 
                            sections=sections, timetable=timetable_data, 
                            selected_class_id=class_id, 
                            selected_class_name=selected_class_name,
-                           selected_section=selected_section)
+                           selected_section=selected_section,
+                           class_advisor_name=class_advisor_name)
 
 @app.route('/upload_timetable', methods=['POST'])
 @login_required
