@@ -464,12 +464,21 @@ def admin_create_user():
         password = hashlib.sha256(password_input.encode()).hexdigest()
         conn = get_db()
         
-        # Insert user
-        conn.execute('INSERT INTO users (username, password, role, phone) VALUES (?, ?, ?, ?)', 
-                    (username, password, role, phone))
-        conn.commit()
-        
+        # Check if user already exists
         user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        if not user:
+            # Insert user if not exists
+            conn.execute('INSERT INTO users (username, password, role, phone) VALUES (?, ?, ?, ?)', 
+                        (username, password, role, phone))
+            conn.commit()
+            user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        else:
+            # Update role and phone for existing user
+            conn.execute('UPDATE users SET role = ?, phone = ? WHERE id = ?', (role, phone, user['id']))
+            conn.commit()
+            # Fetch updated user
+            user = conn.execute('SELECT * FROM users WHERE id = ?', (user['id'],)).fetchone()
+
         
         if role == 'student' and register_no:
             # Handle class/section linking
@@ -1724,14 +1733,18 @@ def timetable():
             
     timetable_data = []
     if class_id:
-        timetable_data = conn.execute('SELECT * FROM timetables WHERE class_id = ? ORDER BY CASE \
-            WHEN day="Monday" THEN 1 \
-            WHEN day="Tuesday" THEN 2 \
-            WHEN day="Wednesday" THEN 3 \
-            WHEN day="Thursday" THEN 4 \
-            WHEN day="Friday" THEN 5 \
-            WHEN day="Saturday" THEN 6 \
-            ELSE 7 END', (class_id,)).fetchall()
+        timetable_data = conn.execute('''
+            SELECT * FROM timetables 
+            WHERE class_id = ? 
+            ORDER BY CASE 
+                WHEN day='Monday' THEN 1 
+                WHEN day='Tuesday' THEN 2 
+                WHEN day='Wednesday' THEN 3 
+                WHEN day='Thursday' THEN 4 
+                WHEN day='Friday' THEN 5 
+                WHEN day='Saturday' THEN 6 
+                ELSE 7 END
+        ''', (class_id,)).fetchall()
         
     conn.close()
     return render_template('timetable.html', classes=classes, class_names=class_names, 
@@ -1743,7 +1756,7 @@ def timetable():
 @app.route('/upload_timetable', methods=['POST'])
 @login_required
 def upload_timetable():
-    if session.get('role') not in ['admin', 'teacher']:\
+    if session.get('role') not in ['admin', 'teacher']:
         abort(403)
         
     try:
@@ -1776,7 +1789,11 @@ def upload_timetable():
             fac = faculties[i].strip() if i < len(faculties) else ''
             
             if subj: # Only save if subject is entered
-                conn.execute('INSERT OR REPLACE INTO timetables (class_id, day, subject_name, faculty_name) VALUES (?, ?, ?, ?)',
+                # Delete existing for this specific day/subject combination to mimic REPLACE behavior
+                # or just delete all for this class/day if it was intended to be a single entry per slot
+                conn.execute('DELETE FROM timetables WHERE class_id = ? AND day = ? AND subject_name = ?', 
+                           (class_id, day, subj))
+                conn.execute('INSERT INTO timetables (class_id, day, subject_name, faculty_name) VALUES (?, ?, ?, ?)',
                             (class_id, day, subj, fac))
                 count += 1
                 

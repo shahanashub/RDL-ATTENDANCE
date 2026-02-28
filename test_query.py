@@ -1,9 +1,23 @@
 import sqlite3
-conn=sqlite3.connect('scientia.db')
-cur=conn.cursor()
-cur.execute("SELECT c.class_name, c.section, s.subject_name FROM subjects s JOIN classes c ON s.class_id=c.id WHERE c.class_name=? AND c.section=?",('Class 1','A'))
-rows=cur.fetchall()
-print('Subjects for Class 1-A:')
-for r in rows:
-    print(' -', r[2])
-conn.close()
+
+def test_query():
+    conn = sqlite3.connect('scientia.db')
+    conn.row_factory = sqlite3.Row
+    try:
+        class_id = 5
+        query = 'SELECT * FROM timetables WHERE class_id = ? ORDER BY CASE \
+            WHEN day="Monday" THEN 1 \
+            WHEN day="Tuesday" THEN 2 \
+            WHEN day="Wednesday" THEN 3 \
+            WHEN day="Thursday" THEN 4 \
+            WHEN day="Friday" THEN 5 \
+            WHEN day="Saturday" THEN 6 \
+            ELSE 7 END'
+        res = conn.execute(query, (class_id,)).fetchall()
+        print("Query successful")
+    except Exception as e:
+        print(f"Query failed: {e}")
+    conn.close()
+
+if __name__ == '__main__':
+    test_query()
