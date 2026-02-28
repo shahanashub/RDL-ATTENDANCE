@@ -1805,6 +1805,26 @@ def upload_timetable():
         
     return redirect(url_for('timetable'))
 
+@app.route('/update_timetable', methods=['POST'])
+@login_required
+def update_timetable():
+    if session.get('role') not in ['admin', 'teacher']:
+        abort(403)
+    try:
+        tt_id = request.form.get('tt_id')
+        subject = request.form.get('subject')
+        faculty = request.form.get('faculty')
+        
+        conn = get_db()
+        conn.execute('UPDATE timetables SET subject_name = ?, faculty_name = ? WHERE id = ?',
+                    (subject, faculty, tt_id))
+        conn.commit()
+        conn.close()
+        flash('Timetable entry updated', 'success')
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'danger')
+    return redirect(url_for('timetable'))
+
 @app.route('/delete_timetable/<int:tt_id>', methods=['POST'])
 @login_required
 def delete_timetable(tt_id):
